@@ -30,7 +30,7 @@ class MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Location Mapping"),
+        title: const Text("IPS Android UI"),
       ),
       drawer: Drawer(
           child: ListView(
@@ -78,49 +78,71 @@ class MainCompass extends State<MainPage> {
         children: [
           Column(
             mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 5.0),
-              Padding(
-                  padding: const EdgeInsets.all(18.0),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Image.asset(
-                        "assets/compass/cadrant.png",
-                        scale: 5.0,
-                      ),
-                      Transform.rotate(
-                        angle: ((heading ?? 0) * (pi / 180) * -1),
-                        child: Image.asset("assets/compass/compass.png",
-                            scale: 5.0),
-                      ),
-                    ],
-                  )),
-              Text(
-                '${heading!.ceil()}',
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13.0,
-                    fontWeight: FontWeight.bold),
+              const SizedBox(
+                height: 5.0,
+                width: double.infinity,
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    height: 5.0,
+                    width: 30,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(9.0),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Image.asset(
+                          "assets/compass/cadrant.png",
+                          scale: 5.0,
+                        ),
+                        Transform.rotate(
+                          angle: ((heading ?? 0) * (pi / 180) * -1),
+                          child: Image.asset("assets/compass/compass.png",
+                              scale: 5.0),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(9.0),
+                    child: Text(
+                      '${heading!.ceil()}',
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  )
+                ],
               ),
             ],
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(
-                height: 30.0,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(30.0),
-                child: Transform.rotate(
-                  angle: ((heading ?? 0) * (pi / 180) * -1),
-                  child: Image.asset("assets/map/map_1.png", scale: 1.1),
+          InteractiveViewer(
+            minScale: 0.1,
+            maxScale: 1.1,
+            boundaryMargin: const EdgeInsets.all(double.infinity),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  height: 220,
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.all(50.0),
+                  child: Transform.rotate(
+                    angle: ((heading ?? 0) * (pi / 180) * -1),
+                    child: Image.asset("assets/map/map_1.png", scale: 1.1),
+                  ),
+                ),
+              ],
+            ),
           )
         ],
       ),
