@@ -51,6 +51,16 @@ class MainBody extends State<MainPage> {
     });
   }
 
+  void setMapFloorByIndex(int floor) {
+    setState(() {
+      mapFloorIndex = floor % mapFloor.length;
+    });
+  }
+
+  int getCurrentMapFloorIndex() {
+    return mapFloorIndex % mapFloor.length;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,6 +171,59 @@ class MainBody extends State<MainPage> {
           ],
         ),
       ),
+      floatingActionButton: constructFloorSelectorFloatingActionBar(context),
+    );
+  }
+
+  Column constructFloorSelectorFloatingActionBar(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        SizedBox(
+          width: 40,
+          child: FittedBox(
+            child: FloatingActionButton(
+              backgroundColor: getCurrentMapFloorIndex() == 1
+                  ? Theme.of(context).colorScheme.inversePrimary
+                  : null,
+              foregroundColor:
+                  getCurrentMapFloorIndex() == 1 ? Colors.black : null,
+              onPressed: () => setMapFloorByIndex(1),
+              // shape: const BeveledRectangleBorder(borderRadius: BorderRadius.zero),
+              shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(100),
+                topRight: Radius.circular(100),
+                bottomLeft: Radius.circular(0),
+                bottomRight: Radius.circular(0),
+              )),
+              child: const Text("2F"),
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 40,
+          child: FittedBox(
+            child: FloatingActionButton(
+              backgroundColor: getCurrentMapFloorIndex() == 0
+                  ? Theme.of(context).colorScheme.inversePrimary
+                  : null,
+              foregroundColor:
+                  getCurrentMapFloorIndex() == 0 ? Colors.black : null,
+              onPressed: () => setMapFloorByIndex(0),
+              // shape: const BeveledRectangleBorder(borderRadius: BorderRadius.zero),
+              shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(0),
+                topRight: Radius.circular(0),
+                bottomLeft: Radius.circular(100),
+                bottomRight: Radius.circular(100),
+              )),
+              child: const Text("1F"),
+            ),
+          ),
+        )
+      ],
     );
   }
 }
