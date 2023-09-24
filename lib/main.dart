@@ -26,7 +26,6 @@ class MainApp extends StatelessWidget {
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
   @override
-  // MainPageState createState() => MainPageState();
   MainBody createState() => MainBody();
 }
 
@@ -69,7 +68,6 @@ class MainBody extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.grey.shade900,
         centerTitle: true,
@@ -166,7 +164,6 @@ class MainBody extends State<MainPage> {
                     padding: const EdgeInsets.all(50.0),
                     child: Transform.rotate(
                       angle: ((heading ?? 0) * (pi / 180) * -1),
-                      // child: Image.asset("assets/map/map_1.png", scale: 1.1),
                       child: mapFloor[mapFloorIndex],
                     ),
                   ),
@@ -189,20 +186,23 @@ class MainBody extends State<MainPage> {
           child: FittedBox(
             child: FloatingActionButton(
               backgroundColor: getCurrentMapFloorIndex() == 1
-                  ? Theme.of(context).colorScheme.inversePrimary
-                  : null,
+                  ? Colors.blue
+                  : Theme.of(context).colorScheme.inversePrimary,
               foregroundColor:
-                  getCurrentMapFloorIndex() == 1 ? Colors.black : null,
+                  getCurrentMapFloorIndex() == 1 ? Colors.white : Colors.black,
               onPressed: () => setMapFloorByIndex(1),
-              // shape: const BeveledRectangleBorder(borderRadius: BorderRadius.zero),
               shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(100),
-                topRight: Radius.circular(100),
-                bottomLeft: Radius.circular(0),
-                bottomRight: Radius.circular(0),
-              )),
-              child: const Text("2F"),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(100),
+                  topRight: Radius.circular(100),
+                  bottomLeft: Radius.circular(0),
+                  bottomRight: Radius.circular(0),
+                ),
+              ),
+              child: const Text(
+                "2F",
+                style: TextStyle(fontSize: 20),
+              ),
             ),
           ),
         ),
@@ -211,20 +211,23 @@ class MainBody extends State<MainPage> {
           child: FittedBox(
             child: FloatingActionButton(
               backgroundColor: getCurrentMapFloorIndex() == 0
-                  ? Theme.of(context).colorScheme.inversePrimary
-                  : null,
+                  ? Colors.blue
+                  : Theme.of(context).colorScheme.inversePrimary,
               foregroundColor:
-                  getCurrentMapFloorIndex() == 0 ? Colors.black : null,
+                  getCurrentMapFloorIndex() == 0 ? Colors.white : Colors.black,
               onPressed: () => setMapFloorByIndex(0),
-              // shape: const BeveledRectangleBorder(borderRadius: BorderRadius.zero),
               shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(0),
-                topRight: Radius.circular(0),
-                bottomLeft: Radius.circular(100),
-                bottomRight: Radius.circular(100),
-              )),
-              child: const Text("1F"),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(0),
+                  topRight: Radius.circular(0),
+                  bottomLeft: Radius.circular(100),
+                  bottomRight: Radius.circular(100),
+                ),
+              ),
+              child: const Text(
+                "1F",
+                style: TextStyle(fontSize: 20),
+              ),
             ),
           ),
         )
