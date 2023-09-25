@@ -131,21 +131,6 @@ class MainBody extends State<MainPage> {
                       ),
                     ],
                   ),
-                  Positioned.fill(
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: 100,
-                      child: FloatingActionButton.extended(
-                        onPressed: () {
-                          setState(() {
-                            mapFloorIndex =
-                                (mapFloorIndex + 1) % mapFloor.length;
-                          });
-                        },
-                        label: const Text("Change Map"),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
