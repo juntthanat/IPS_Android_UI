@@ -1,7 +1,11 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 import 'dart:math';
+import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(const MainApp());
@@ -48,11 +52,32 @@ class MainBody extends State<MainPage> {
   @override
   void initState() {
     super.initState();
+    initPermissionRequest();
+    
+    // Init Compass heading
     FlutterCompass.events!.listen((event) {
       setState(() {
         heading = event.heading;
       });
     });
+  }
+  
+  // Requests and Validates App Permissions
+  // If Permission is not granted, app Settings will be opened recursively until permission is granted
+  Future<Map<Permission, PermissionStatus>> initPermissionRequest() async {
+    Map<Permission, PermissionStatus> permissionStatus = await [
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+      Permission.locationWhenInUse,
+    ].request();
+
+    if ((permissionStatus[Permission.locationWhenInUse] == PermissionStatus.denied) ||
+        (permissionStatus[Permission.locationWhenInUse] == PermissionStatus.permanentlyDenied)
+    ) {
+      await openAppSettings();
+    }    
+    
+    return permissionStatus;
   }
 
   void setMapFloorByIndex(int floor) {

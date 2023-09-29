@@ -10,6 +10,7 @@ dependencies:
   flutter_compass: "^0.7.0"
   flutter:
     sdk: flutter
+  permission_handler: ^11.0.0
 
 dev_dependencies:
   flutter_test:
