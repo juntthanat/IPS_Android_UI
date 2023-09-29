@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_thesis_project/bluetooth.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 void main() {
@@ -47,6 +48,9 @@ class MainBody extends State<MainPage> {
   ];
 
   int mapFloorIndex = 0;
+  
+  // To Scan Bluetooth: Uncomment this
+  //var bluetoothNotifer = BluetoothNotifier();
 
   @override
   void initState() {
@@ -59,6 +63,10 @@ class MainBody extends State<MainPage> {
         heading = event.heading;
       });
     });
+    
+    // Does a simple bluetooth scan and prints the result to the console.
+    // To actually get the data from this, please check out how to use flutter's ChangeNotifier
+    //bluetoothNotifer.scan();
   }
   
   // Requests and Validates App Permissions
