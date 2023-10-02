@@ -26,20 +26,45 @@ class RequestLocationPermissionPage extends StatelessWidget {
         children: [
           const Expanded(
             child: Center(
-              child: Text("Please Enable Location Permission"),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_location_alt, size: 96.0),
+                  Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      "Please Enable Location Permission",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 24.0),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          ElevatedButton(
-            onPressed: () async {
-              if (!await permissionIsGranted()) {
-                await openAppSettings();
-              } else {
-                if (context.mounted) {
-                  Navigator.pop(context);
-                }
-              }
-            },
-            child: Text("Ok!"),
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 75.0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (!await permissionIsGranted()) {
+                          await openAppSettings();
+                        } else {
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                          }
+                        }
+                      },
+                      child: const Text("Ok!"),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
