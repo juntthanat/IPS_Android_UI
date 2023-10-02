@@ -1,3 +1,5 @@
+// import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flutter_compass/flutter_compass.dart';
@@ -31,6 +33,8 @@ class MainPage extends StatefulWidget {
 
 class MainBody extends State<MainPage> {
   double? heading = 0;
+  double coordinateXValue = 0;
+  double coordinateYValue = 0;
 
   static List<Image> mapFloor = <Image>[
     Image.asset(
@@ -53,6 +57,7 @@ class MainBody extends State<MainPage> {
         heading = event.heading;
       });
     });
+    // Implement Event Location Here
   }
 
   void setMapFloorByIndex(int floor) {
@@ -131,6 +136,73 @@ class MainBody extends State<MainPage> {
                       ),
                     ],
                   ),
+
+                  //----------------------Testing for transition Input-----------------//
+                  Positioned.fill(
+                    child: Container(
+                      alignment: Alignment.center,
+                      height: 100,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 100,
+                            child: TextField(
+                              onChanged: (inputX) {
+                                setState(() {
+                                  if (inputX == "") {
+                                    coordinateXValue = 0;
+                                  } else {
+                                    coordinateXValue = double.parse(inputX);
+                                  }
+                                });
+                              },
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(),
+                                labelText: 'offsetX',
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 100,
+                            child: TextField(
+                              onChanged: (inputY) {
+                                setState(() {
+                                  if (inputY == "") {
+                                    coordinateXValue = 0;
+                                  } else {
+                                    coordinateYValue = double.parse(inputY);
+                                  }
+                                });
+                              },
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(),
+                                labelText: 'offsetY',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // FloatingActionButton.extended(
+                      //   onPressed: () {
+                      //     setState(() {
+                      //       mapFloorIndex =
+                      //           (mapFloorIndex + 1) % mapFloor.length;
+                      //     });
+                      //   },
+                      //   label: const Text("Change Map"),
+                      // ),
+                    ),
+                  ),
+                  //----------------------Testing for transition Input-----------------//
                 ],
               ),
             ),
@@ -145,13 +217,27 @@ class MainBody extends State<MainPage> {
                   const SizedBox(
                     height: 220,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(50.0),
-                    child: Transform.rotate(
-                      angle: ((heading ?? 0) * (pi / 180) * -1),
-                      child: mapFloor[mapFloorIndex],
+                  Transform.translate(
+                    offset: Offset(
+                      coordinateXValue,
+                      coordinateYValue,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(50.0),
+                      child: Transform.rotate(
+                        angle: ((heading ?? 0) * (pi / 180) * -1),
+                        child: mapFloor[mapFloorIndex],
+                      ),
                     ),
                   ),
+
+                  // Testing Transition
+                  Transform.translate(
+                      offset: Offset(
+                    coordinateXValue,
+                    coordinateYValue,
+                  ))
+                  // End of Testing Transition
                 ],
               ),
             )
