@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 
 class BLEDevice {
@@ -39,9 +38,10 @@ class BluetoothNotifier extends ChangeNotifier {
   late Stream<DiscoveredDevice> bleDeviceStream;
   late StreamSubscription<DiscoveredDevice> bleDeviceStreamSubscription;
   var _devices = <BLEDevice>[];
+  bool scanning = false;
   
   BluetoothNotifier() {
-    bleDeviceStream = flutterReactiveBle.scanForDevices(withServices: [], scanMode: ScanMode.lowLatency);
+    bleDeviceStream = flutterReactiveBle.scanForDevices(withServices: [], scanMode: ScanMode.balanced);
     bleDeviceStreamSubscription = bleDeviceStream.listen((device) async {
 
       print("Discovered: $device.id");
@@ -62,9 +62,19 @@ class BluetoothNotifier extends ChangeNotifier {
   
   void scan() {
     bleDeviceStreamSubscription.resume();
+    scanning = true;
   }
   
   void pause() {
     bleDeviceStreamSubscription.pause();
+    scanning = false;
+  }
+  
+  void toggle() {
+    if (scanning) {
+      pause();
+    } else {
+      scan();
+    }
   }
 }
