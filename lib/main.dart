@@ -217,27 +217,30 @@ class MainBody extends State<MainPage> {
                   const SizedBox(
                     height: 220,
                   ),
-                  Transform.translate(
-                    offset: Offset(
-                      coordinateXValue,
-                      coordinateYValue,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(50.0),
-                      child: Transform.rotate(
-                        angle: ((heading ?? 0) * (pi / 180) * -1),
-                        child: mapFloor[mapFloorIndex],
+                  Stack(
+                    children: [
+                      Transform.translate(
+                        offset: Offset(
+                          coordinateXValue,
+                          coordinateYValue,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(50.0),
+                          child: Transform.rotate(
+                            angle: ((heading ?? 0) * (pi / 180) * -1),
+                            child: mapFloor[mapFloorIndex],
+                          ),
+                        ),
                       ),
-                    ),
+                      Container(
+                        width: 24,
+                        height: 24,
+                        margin: const EdgeInsets.all(100.0),
+                        decoration: const BoxDecoration(
+                            color: Colors.orange, shape: BoxShape.circle),
+                      ),
+                    ],
                   ),
-
-                  // Testing Transition
-                  Transform.translate(
-                      offset: Offset(
-                    coordinateXValue,
-                    coordinateYValue,
-                  ))
-                  // End of Testing Transition
                 ],
               ),
             )
