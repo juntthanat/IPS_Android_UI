@@ -78,10 +78,14 @@ class MainBody extends State<MainPage> {
       Permission.locationWhenInUse,
     ].request();
 
-    if ((permissionStatus[Permission.locationWhenInUse] == PermissionStatus.denied) ||
-        (permissionStatus[Permission.locationWhenInUse] == PermissionStatus.permanentlyDenied)
-    ) {
-      await openAppSettings();
+    if (permissionStatus[Permission.locationWhenInUse] == PermissionStatus.denied) {
+      await initPermissionRequest();
+    } else if (permissionStatus[Permission.locationWhenInUse] == PermissionStatus.permanentlyDenied) {
+      //await openAppSettings();
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const RequestLocationPermissionPage())
+      );
     }    
     
     return permissionStatus;
@@ -202,6 +206,7 @@ class MainBody extends State<MainPage> {
           width: 40,
           child: FittedBox(
             child: FloatingActionButton(
+              heroTag: "2F",
               backgroundColor: getCurrentMapFloorIndex() == 1
                   ? Colors.blue
                   : Theme.of(context).colorScheme.inversePrimary,
@@ -227,6 +232,7 @@ class MainBody extends State<MainPage> {
           width: 40,
           child: FittedBox(
             child: FloatingActionButton(
+              heroTag: "1F",
               backgroundColor: getCurrentMapFloorIndex() == 0
                   ? Colors.blue
                   : Theme.of(context).colorScheme.inversePrimary,
@@ -251,4 +257,48 @@ class MainBody extends State<MainPage> {
       ],
     );
   }
+}
+
+class RequestLocationPermissionPage extends StatelessWidget {
+  const RequestLocationPermissionPage({super.key});
+
+  Future<bool> permissionIsGranted() async {
+    Map<Permission, PermissionStatus> permissionStatus = await [
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+      Permission.locationWhenInUse,
+    ].request();
+
+    if (permissionStatus[Permission.locationWhenInUse] == PermissionStatus.permanentlyDenied) {
+      return false;
+    }
+    
+    return true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          const Expanded(
+            child: Center(
+              child: Text("Please Enable Location Permission"),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (!await permissionIsGranted()) {
+                await openAppSettings();
+              } else {
+                Navigator.pop(context);
+              }
+            },
+            child: Text("Ok!"),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
