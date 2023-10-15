@@ -51,7 +51,7 @@ class MainBody extends State<MainPage> {
   ];
 
   int mapFloorIndex = 0;
-  
+
   // To Scan Bluetooth: Uncomment this
   //var bluetoothNotifer = BluetoothNotifier();
 
@@ -59,19 +59,19 @@ class MainBody extends State<MainPage> {
   void initState() {
     super.initState();
     initPermissionRequest();
-    
+
     // Init Compass heading
     FlutterCompass.events!.listen((event) {
       setState(() {
         heading = event.heading;
       });
     });
-    
+
     // Does a simple bluetooth scan and prints the result to the console.
     // To actually get the data from this, please check out how to use flutter's ChangeNotifier
     //bluetoothNotifer.scan();
   }
-  
+
   // Requests and Validates App Permissions
   // If Permission is not granted, app Settings will be opened recursively until permission is granted
   Future<Map<Permission, PermissionStatus>> initPermissionRequest() async {
@@ -81,15 +81,17 @@ class MainBody extends State<MainPage> {
       Permission.locationWhenInUse,
     ].request();
 
-    if (permissionStatus[Permission.locationWhenInUse] == PermissionStatus.denied) {
+    if (permissionStatus[Permission.locationWhenInUse] ==
+        PermissionStatus.denied) {
       await initPermissionRequest();
-    } else if (permissionStatus[Permission.locationWhenInUse] == PermissionStatus.permanentlyDenied) {
+    } else if (permissionStatus[Permission.locationWhenInUse] ==
+        PermissionStatus.permanentlyDenied) {
       if (context.mounted) {
-        Navigator.of(context)
-          .push(MaterialPageRoute(builder: (cntx) => const RequestLocationPermissionPage()));
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (cntx) => const RequestLocationPermissionPage()));
       }
-    }    
-    
+    }
+
     return permissionStatus;
   }
 
@@ -184,8 +186,13 @@ class MainBody extends State<MainPage> {
                             child: TextField(
                               onChanged: (inputX) {
                                 setState(() {
-                                  if (inputX == "") {
+                                  if (inputX == "" || inputX == "-") {
                                     coordinateXValue = 0;
+                                  } else if (inputX[0] == "-") {
+                                    String nonNegativeString =
+                                        inputX.substring(1);
+                                    coordinateXValue =
+                                        -(double.parse(nonNegativeString));
                                   } else {
                                     coordinateXValue = double.parse(inputX);
                                   }
@@ -205,8 +212,13 @@ class MainBody extends State<MainPage> {
                             child: TextField(
                               onChanged: (inputY) {
                                 setState(() {
-                                  if (inputY == "") {
+                                  if (inputY == "" || inputY == "-") {
                                     coordinateXValue = 0;
+                                  } else if (inputY[0] == "-") {
+                                    String nonNegativeString =
+                                        inputY.substring(1);
+                                    coordinateYValue =
+                                        -(double.parse(nonNegativeString));
                                   } else {
                                     coordinateYValue = double.parse(inputY);
                                   }
