@@ -31,6 +31,25 @@ class BLEDevice {
     _rssi = discoveredDevice.rssi;
   }
 
+  BLEDevice.empty() {
+    _id = "";
+    _name = "";
+    _rssi = -100;
+  }
+  
+  bool isEmpty() {
+    if (_id.isEmpty && _name.isEmpty && _rssi == -100) {
+      return true;
+    }
+    
+    return false;
+  }
+  
+  @override
+  String toString() {
+    return "id: $_id  name: $_name  rssi: $_rssi";
+  }
+
 }
 
 class BluetoothNotifier extends ChangeNotifier {
@@ -40,6 +59,7 @@ class BluetoothNotifier extends ChangeNotifier {
   late Stream<DiscoveredDevice> bleDeviceStream;
   late StreamSubscription<DiscoveredDevice> bleDeviceStreamSubscription;
   var _devices = <BLEDevice>[];
+  BLEDevice nearestDevice = BLEDevice.empty();
   bool scanning = false;
   
   BluetoothNotifier() {
@@ -54,6 +74,10 @@ class BluetoothNotifier extends ChangeNotifier {
       } else {
         _devices.add(BLEDevice(device));
       }
+      
+      _devices.sort((a, b) => a._rssi.compareTo(b._rssi));
+      nearestDevice = _devices.last;
+      print("Nearest Device: ${nearestDevice.id}    ${nearestDevice.rssi}");
       
       notifyListeners();
 
