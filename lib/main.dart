@@ -1,9 +1,12 @@
-// import 'dart:html';
+import 'dart:math';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'dart:math';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_thesis_project/bluetooth.dart';
+import 'package:flutter_thesis_project/permissions.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(const MainApp());
@@ -48,16 +51,46 @@ class MainBody extends State<MainPage> {
   ];
 
   int mapFloorIndex = 0;
+  
+  // To Scan Bluetooth: Uncomment this
+  //var bluetoothNotifer = BluetoothNotifier();
 
   @override
   void initState() {
     super.initState();
+    initPermissionRequest();
+    
+    // Init Compass heading
     FlutterCompass.events!.listen((event) {
       setState(() {
         heading = event.heading;
       });
     });
-    // Implement Event Location Here
+    
+    // Does a simple bluetooth scan and prints the result to the console.
+    // To actually get the data from this, please check out how to use flutter's ChangeNotifier
+    //bluetoothNotifer.scan();
+  }
+  
+  // Requests and Validates App Permissions
+  // If Permission is not granted, app Settings will be opened recursively until permission is granted
+  Future<Map<Permission, PermissionStatus>> initPermissionRequest() async {
+    Map<Permission, PermissionStatus> permissionStatus = await [
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+      Permission.locationWhenInUse,
+    ].request();
+
+    if (permissionStatus[Permission.locationWhenInUse] == PermissionStatus.denied) {
+      await initPermissionRequest();
+    } else if (permissionStatus[Permission.locationWhenInUse] == PermissionStatus.permanentlyDenied) {
+      if (context.mounted) {
+        Navigator.of(context)
+          .push(MaterialPageRoute(builder: (cntx) => const RequestLocationPermissionPage()));
+      }
+    }    
+    
+    return permissionStatus;
   }
 
   void setMapFloorByIndex(int floor) {
@@ -259,6 +292,7 @@ class MainBody extends State<MainPage> {
           width: 40,
           child: FittedBox(
             child: FloatingActionButton(
+              heroTag: "2F",
               backgroundColor: getCurrentMapFloorIndex() == 1
                   ? Colors.blue
                   : Theme.of(context).colorScheme.inversePrimary,
@@ -284,6 +318,7 @@ class MainBody extends State<MainPage> {
           width: 40,
           child: FittedBox(
             child: FloatingActionButton(
+              heroTag: "1F",
               backgroundColor: getCurrentMapFloorIndex() == 0
                   ? Colors.blue
                   : Theme.of(context).colorScheme.inversePrimary,
