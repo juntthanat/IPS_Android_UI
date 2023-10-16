@@ -253,14 +253,14 @@ class MainBody extends State<MainPage> {
             ),
             InteractiveViewer(
               minScale: 0.1,
-              maxScale: 1.1,
+              maxScale: 1.0,
               boundaryMargin: const EdgeInsets.all(double.infinity),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(
-                    height: 220,
+                    height: 10,
                   ),
                   Stack(
                     children: [
@@ -270,7 +270,7 @@ class MainBody extends State<MainPage> {
                           coordinateYValue,
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(50.0),
+                          padding: const EdgeInsets.all(80.0),
                           child: Transform.rotate(
                             angle: ((heading ?? 0) * (pi / 180) * -1),
                             child: mapFloor[mapFloorIndex],
