@@ -34,10 +34,15 @@ class MainPage extends StatefulWidget {
   MainBody createState() => MainBody();
 }
 
-class MainBody extends State<MainPage> {
+class MainBody extends State<MainPage> with TickerProviderStateMixin {
   double? heading = 0;
   double coordinateXValue = 0;
   double coordinateYValue = 0;
+
+  final TransformationController mapTransformationController =
+      TransformationController();
+  Animation<Matrix4>? mapAnimationReset;
+  late final AnimationController mapControllerReset;
 
   static List<Image> mapFloor = <Image>[
     Image.asset(
@@ -52,7 +57,47 @@ class MainBody extends State<MainPage> {
 
   int mapFloorIndex = 0;
 
-  // To Scan Bluetooth: Uncomment this
+  void onMapAnimationReset() {
+    mapTransformationController.value = mapAnimationReset!.value;
+    if (!mapControllerReset.isAnimating) {
+      mapAnimationReset!.removeListener(onMapAnimationReset);
+      mapAnimationReset = null;
+      mapControllerReset.reset();
+    }
+  }
+
+  void mapAnimationResetInitialize() {
+    mapControllerReset.reset();
+    mapAnimationReset = Matrix4Tween(
+      begin: mapTransformationController.value,
+      end: Matrix4.identity(),
+    ).animate(mapControllerReset);
+    mapAnimationReset!.addListener(onMapAnimationReset);
+    mapControllerReset.forward();
+  }
+
+  // Stop the reset to inital position transform animation.
+  void mapAnimateResetStop() {
+    mapControllerReset.stop();
+    mapAnimationReset?.removeListener(onMapAnimationReset);
+    mapAnimationReset = null;
+    mapControllerReset.reset();
+  }
+
+  // If user translate during the initial position transform animation, the animation cancel and follow the user.
+  void _onInteractionStart(ScaleStartDetails details) {
+    if (mapControllerReset.status == AnimationStatus.forward) {
+      mapAnimateResetStop();
+    }
+  }
+
+  @override
+  void dispose() {
+    mapControllerReset.dispose();
+    super.dispose();
+  }
+
+    // To Scan Bluetooth: Uncomment this
   //var bluetoothNotifer = BluetoothNotifier();
 
   @override
@@ -66,6 +111,11 @@ class MainBody extends State<MainPage> {
         heading = event.heading;
       });
     });
+
+    mapControllerReset = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
 
     // Does a simple bluetooth scan and prints the result to the console.
     // To actually get the data from this, please check out how to use flutter's ChangeNotifier
@@ -178,7 +228,7 @@ class MainBody extends State<MainPage> {
                       alignment: Alignment.center,
                       height: 100,
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           SizedBox(
@@ -233,18 +283,14 @@ class MainBody extends State<MainPage> {
                               ),
                             ),
                           ),
+                          FloatingActionButton.extended(
+                            onPressed: () {
+                              mapAnimationResetInitialize();
+                            },
+                            label: const Text("Reset"),
+                          ),
                         ],
                       ),
-
-                      // FloatingActionButton.extended(
-                      //   onPressed: () {
-                      //     setState(() {
-                      //       mapFloorIndex =
-                      //           (mapFloorIndex + 1) % mapFloor.length;
-                      //     });
-                      //   },
-                      //   label: const Text("Change Map"),
-                      // ),
                     ),
                   ),
                   //----------------------Testing for transition Input-----------------//
@@ -252,8 +298,10 @@ class MainBody extends State<MainPage> {
               ),
             ),
             InteractiveViewer(
+              transformationController: mapTransformationController,
               minScale: 0.1,
               maxScale: 1.0,
+              onInteractionStart: _onInteractionStart,
               boundaryMargin: const EdgeInsets.all(double.infinity),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
