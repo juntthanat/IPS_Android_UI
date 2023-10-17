@@ -97,7 +97,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     super.dispose();
   }
 
-    // To Scan Bluetooth: Uncomment this
+  // To Scan Bluetooth: Uncomment this
   //var bluetoothNotifer = BluetoothNotifier();
 
   @override
@@ -300,7 +300,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
             InteractiveViewer(
               transformationController: mapTransformationController,
               minScale: 0.1,
-              maxScale: 1.0,
+              maxScale: 3.0,
               onInteractionStart: _onInteractionStart,
               boundaryMargin: const EdgeInsets.all(double.infinity),
               child: Column(
