@@ -310,29 +310,33 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                   const SizedBox(
                     height: 10,
                   ),
-                  Stack(
-                    children: [
-                      Transform.translate(
-                        offset: Offset(
-                          coordinateXValue,
-                          coordinateYValue,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(80.0),
-                          child: Transform.rotate(
-                            angle: ((heading ?? 0) * (pi / 180) * -1),
-                            child: mapFloor[mapFloorIndex],
+                  Transform.rotate(
+                    angle: ((heading ?? 0) * (pi / 180) * -1),
+                    child: Stack(
+                      children: [
+                        Transform.translate(
+                          offset: Offset(
+                            coordinateXValue,
+                            coordinateYValue,
                           ),
+                          child: Padding(
+                              padding: const EdgeInsets.all(80.0),
+                              child: mapFloor[mapFloorIndex]
+                              // child: Transform.rotate(
+                              //   angle: ((heading ?? 0) * (pi / 180) * -1),
+                              //   child: mapFloor[mapFloorIndex],
+                              // ),
+                              ),
                         ),
-                      ),
-                      Container(
-                        width: 24,
-                        height: 24,
-                        margin: const EdgeInsets.all(100.0),
-                        decoration: const BoxDecoration(
-                            color: Colors.orange, shape: BoxShape.circle),
-                      ),
-                    ],
+                        Container(
+                          width: 24,
+                          height: 24,
+                          margin: const EdgeInsets.all(100.0),
+                          decoration: const BoxDecoration(
+                              color: Colors.orange, shape: BoxShape.circle),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
