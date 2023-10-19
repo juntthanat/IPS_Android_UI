@@ -322,10 +322,6 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                           child: Padding(
                               padding: const EdgeInsets.all(80.0),
                               child: mapFloor[mapFloorIndex]
-                              // child: Transform.rotate(
-                              //   angle: ((heading ?? 0) * (pi / 180) * -1),
-                              //   child: mapFloor[mapFloorIndex],
-                              // ),
                               ),
                         ),
                         Container(
