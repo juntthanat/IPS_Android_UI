@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
@@ -42,8 +41,8 @@ class Beacon {
 }
 
 Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress) async {
-  final formattedMacAddress = "FF:00:CC:CC:EE:DD".replaceAll(":", "%3A");
-  final formattedUri = Uri.parse('http://marco.cooldev.win:8080/api/v1/beacon/macAddress?macAddress=$formattedMacAddress');
+  final formattedMacAddress = macAddress.replaceAll(":", "%3A");
+  final formattedUri = Uri.parse('http://159.223.40.229:8080/api/v1/beacon/macAddress?macAddress=$formattedMacAddress');
   
   try {
     print("Requesting...");
@@ -56,7 +55,7 @@ Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress) async {
       //throw Exception("Failed to fetch Location of said beacon");
     }
   } on Exception catch(_) {
-    print("AHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
+    print("Failed to make get request");
   }
   
   return Beacon.empty();

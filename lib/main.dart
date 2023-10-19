@@ -104,7 +104,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   }
 
   // To Scan Bluetooth: Uncomment this
-  var bluetoothNotifer = BluetoothNotifier();
+  var bluetoothNotifier = BluetoothNotifier();
 
   @override
   void initState() {
@@ -125,30 +125,33 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
     // Does a simple bluetooth scan and prints the result to the console.
     // To actually get the data from this, please check out how to use flutter's ChangeNotifier
-    bluetoothNotifer.scan();
+    bluetoothNotifier.scan();
     
     refreshTimer = Timer.periodic(
       Duration(seconds: REFRESH_RATE),
       (timer) {
         fetchPosition();
-        bluetoothNotifer.clear();
+        bluetoothNotifier.clear();
       }
     );
   }
   
+  // Fetches the position of the nearest Bluetooth Beacon
   void fetchPosition() async {
-    if (bluetoothNotifer.nearestDevice.isEmpty()) {
+    if (bluetoothNotifier.nearestDevice.isEmpty()) {
       return;
     }
 
-    print("id: ${bluetoothNotifer.nearestDevice.id}    rssi: ${bluetoothNotifer.nearestDevice.rssi}");
-    Beacon beaconInfo = await fetchBeaconInfoFromMacAddress(bluetoothNotifer.nearestDevice.id);
-    print("Location: x = ${beaconInfo.x}  y = ${beaconInfo.y}");
+    print("id: ${bluetoothNotifier.nearestDevice.id}    rssi: ${bluetoothNotifier.nearestDevice.rssi}");
+    Beacon beaconInfo = await fetchBeaconInfoFromMacAddress(bluetoothNotifier.nearestDevice.id);
+    
+    if (beaconInfo.isEmpty()) {
+      print("Beacon not found in database");
+    }
 
     setState(() {
       currentBeaconInfo = beaconInfo;
     });
-    
   }
 
   // Requests and Validates App Permissions
