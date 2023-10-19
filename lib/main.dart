@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/bluetooth.dart';
 import 'package:flutter_thesis_project/permissions.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -56,6 +57,10 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   ];
 
   int mapFloorIndex = 0;
+  Timer? refreshTimer;
+  final int REFRESH_RATE = 5;
+  
+  Beacon currentBeaconInfo = Beacon.empty();
 
   void onMapAnimationReset() {
     mapTransformationController.value = mapAnimationReset!.value;
@@ -93,12 +98,13 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    refreshTimer?.cancel();
     mapControllerReset.dispose();
     super.dispose();
   }
 
   // To Scan Bluetooth: Uncomment this
-  //var bluetoothNotifer = BluetoothNotifier();
+  var bluetoothNotifer = BluetoothNotifier();
 
   @override
   void initState() {
@@ -119,7 +125,30 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
     // Does a simple bluetooth scan and prints the result to the console.
     // To actually get the data from this, please check out how to use flutter's ChangeNotifier
-    //bluetoothNotifer.scan();
+    bluetoothNotifer.scan();
+    
+    refreshTimer = Timer.periodic(
+      Duration(seconds: REFRESH_RATE),
+      (timer) {
+        fetchPosition();
+        bluetoothNotifer.clear();
+      }
+    );
+  }
+  
+  void fetchPosition() async {
+    if (bluetoothNotifer.nearestDevice.isEmpty()) {
+      return;
+    }
+
+    print("id: ${bluetoothNotifer.nearestDevice.id}    rssi: ${bluetoothNotifer.nearestDevice.rssi}");
+    Beacon beaconInfo = await fetchBeaconInfoFromMacAddress(bluetoothNotifer.nearestDevice.id);
+    print("Location: x = ${beaconInfo.x}  y = ${beaconInfo.y}");
+
+    setState(() {
+      currentBeaconInfo = beaconInfo;
+    });
+    
   }
 
   // Requests and Validates App Permissions
