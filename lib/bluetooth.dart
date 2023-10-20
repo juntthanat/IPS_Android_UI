@@ -66,7 +66,7 @@ class BluetoothNotifier extends ChangeNotifier {
     bleDeviceStream = flutterReactiveBle.scanForDevices(withServices: [serviceUuid], scanMode: ScanMode.lowPower);
     bleDeviceStreamSubscription = bleDeviceStream.listen((device) async {
 
-      print("Discovered: ${device.id}");
+      // print("Discovered: ${device.id}");
       var idList = _devices.map((e) => e.id).toList();
       var idIdx = idList.indexOf(device.id);
       if (idIdx != -1) {
@@ -77,7 +77,7 @@ class BluetoothNotifier extends ChangeNotifier {
       
       _devices.sort((a, b) => a._rssi.compareTo(b._rssi));
       nearestDevice = _devices.last;
-      print("Nearest Device: ${nearestDevice.id}    ${nearestDevice.rssi}");
+      // print("Nearest Device: ${nearestDevice.id}    ${nearestDevice.rssi}");
       
       notifyListeners();
 
@@ -102,5 +102,9 @@ class BluetoothNotifier extends ChangeNotifier {
     } else {
       scan();
     }
+  }
+
+  void clear() {
+    _devices.clear();
   }
 }

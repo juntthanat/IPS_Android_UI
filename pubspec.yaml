@@ -13,6 +13,7 @@ dependencies:
   permission_handler: ^11.0.0
   flutter_reactive_ble: ^5.2.0
   provider: ^6.0.5
+  http: ^1.1.0
 
 dev_dependencies:
   flutter_test:
