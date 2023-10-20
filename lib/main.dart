@@ -321,16 +321,11 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                           ),
                           child: Padding(
                               padding: const EdgeInsets.all(80.0),
-                              child: mapFloor[mapFloorIndex]
-                              ),
+                              child: mapFloor[mapFloorIndex]),
                         ),
                         Container(
-                          width: 24,
-                          height: 24,
-                          margin: const EdgeInsets.all(100.0),
-                          decoration: const BoxDecoration(
-                              color: Colors.orange, shape: BoxShape.circle),
-                        ),
+                          child: userIconTest(context),
+                        )
                       ],
                     ),
                   ),
@@ -403,4 +398,23 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
       ],
     );
   }
+}
+
+Column userIconTest(BuildContext userIcon) {
+  return Column(
+    children: <Widget>[
+      Container(
+        color: Colors.red,
+        height: (MediaQuery.of(userIcon).size.height - 250),
+        width: (MediaQuery.of(userIcon).size.width),
+        child: Container(
+          width: 24,
+          height: 24,
+          margin: const EdgeInsets.all(200.0),
+          decoration:
+              const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+        ),
+      ),
+    ],
+  );
 }
