@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
@@ -48,11 +49,11 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   static List<Image> mapFloor = <Image>[
     Image.asset(
       "assets/map/map_1.png",
-      scale: 1.1,
+      scale: 1.0,
     ),
     Image.asset(
       "assets/map/map_2.png",
-      scale: 1.1,
+      scale: 1.0,
     ),
   ];
 
@@ -202,6 +203,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
+              height: 150,
+              width: (MediaQuery.of(context).size.width),
               color: Colors.grey[900],
               child: Stack(
                 children: [
@@ -329,49 +332,17 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                 ],
               ),
             ),
-            InteractiveViewer(
-              transformationController: mapTransformationController,
-              minScale: 0.1,
-              maxScale: 3.0,
-              onInteractionStart: _onInteractionStart,
-              boundaryMargin: const EdgeInsets.all(double.infinity),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Transform.rotate(
-                    angle: ((heading ?? 0) * (pi / 180) * -1),
-                    child: Stack(
-                      children: [
-                        Transform.translate(
-                          offset: Offset(
-                            coordinateXValue,
-                            coordinateYValue,
-                          ),
-                          child: Padding(
-                              padding: const EdgeInsets.all(80.0),
-                              child: mapFloor[mapFloorIndex]
-                              // child: Transform.rotate(
-                              //   angle: ((heading ?? 0) * (pi / 180) * -1),
-                              //   child: mapFloor[mapFloorIndex],
-                              // ),
-                              ),
-                        ),
-                        Container(
-                          width: 24,
-                          height: 24,
-                          margin: const EdgeInsets.all(100.0),
-                          decoration: const BoxDecoration(
-                              color: Colors.orange, shape: BoxShape.circle),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            SizedBox(
+              height: MediaQuery.of(context).size.height - 150,
+              child: mainMap(
+                  context,
+                  mapTransformationController,
+                  _onInteractionStart,
+                  heading,
+                  coordinateXValue,
+                  coordinateYValue,
+                  mapFloor,
+                  mapFloorIndex),
             )
           ],
         ),
@@ -439,4 +410,58 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
       ],
     );
   }
+}
+
+InteractiveViewer mainMap(
+    BuildContext context,
+    mapTransformationController,
+    onInteractionStart,
+    heading,
+    coordinateXValue,
+    coordinateYValue,
+    mapFloor,
+    mapFloorIndex) {
+  return InteractiveViewer(
+    transformationController: mapTransformationController,
+    minScale: 0.1,
+    maxScale: 3.0,
+    onInteractionStart: onInteractionStart,
+    boundaryMargin: const EdgeInsets.all(double.infinity),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        // const SizedBox(
+        //   height: 10,
+        // ),
+        Transform.rotate(
+          angle: ((heading ?? 0) * (pi / 180) * -1),
+          child: Stack(
+            children: [
+              Transform.translate(
+                offset: Offset(
+                  coordinateXValue,
+                  coordinateYValue,
+                ),
+                child: Padding(
+                    padding: const EdgeInsets.all(80.0),
+                    child: mapFloor[mapFloorIndex]),
+              ),
+              SizedBox(
+                height: (MediaQuery.of(context).size.height - 150),
+                width: (MediaQuery.of(context).size.width),
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  margin: const EdgeInsets.all(200.0),
+                  decoration: const BoxDecoration(
+                      color: Colors.orange, shape: BoxShape.circle),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 }
