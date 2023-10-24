@@ -60,7 +60,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   int mapFloorIndex = 0;
   Timer? refreshTimer;
   final int REFRESH_RATE = 5;
-  
+
   Beacon currentBeaconInfo = Beacon.empty();
 
   void onMapAnimationReset() {
@@ -127,25 +127,24 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     // Does a simple bluetooth scan and prints the result to the console.
     // To actually get the data from this, please check out how to use flutter's ChangeNotifier
     bluetoothNotifier.scan();
-    
-    refreshTimer = Timer.periodic(
-      Duration(seconds: REFRESH_RATE),
-      (timer) {
-        fetchPosition();
-        bluetoothNotifier.clear();
-      }
-    );
+
+    refreshTimer = Timer.periodic(Duration(seconds: REFRESH_RATE), (timer) {
+      fetchPosition();
+      bluetoothNotifier.clear();
+    });
   }
-  
+
   // Fetches the position of the nearest Bluetooth Beacon
   void fetchPosition() async {
     if (bluetoothNotifier.nearestDevice.isEmpty()) {
       return;
     }
 
-    print("id: ${bluetoothNotifier.nearestDevice.id}    rssi: ${bluetoothNotifier.nearestDevice.rssi}");
-    Beacon beaconInfo = await fetchBeaconInfoFromMacAddress(bluetoothNotifier.nearestDevice.id);
-    
+    print(
+        "id: ${bluetoothNotifier.nearestDevice.id}    rssi: ${bluetoothNotifier.nearestDevice.rssi}");
+    Beacon beaconInfo =
+        await fetchBeaconInfoFromMacAddress(bluetoothNotifier.nearestDevice.id);
+
     if (beaconInfo.isEmpty()) {
       print("Beacon not found in database");
     }
@@ -203,7 +202,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              height: 150,
+              height: MediaQuery.of(context).size.height / 5,
               width: (MediaQuery.of(context).size.width),
               color: Colors.grey[900],
               child: Stack(
@@ -213,7 +212,6 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(
-                        height: 5.0,
                         width: double.infinity,
                       ),
                       Column(
@@ -221,7 +219,6 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           const SizedBox(
-                            height: 5.0,
                             width: 30,
                           ),
                           Padding(
@@ -333,7 +330,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
               ),
             ),
             SizedBox(
-              height: MediaQuery.of(context).size.height - 150,
+              height: ((MediaQuery.of(context).size.height / 5) * 4) - 90,
               child: mainMap(
                   context,
                   mapTransformationController,
@@ -431,9 +428,6 @@ InteractiveViewer mainMap(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        // const SizedBox(
-        //   height: 10,
-        // ),
         Transform.rotate(
           angle: ((heading ?? 0) * (pi / 180) * -1),
           child: Stack(
@@ -448,12 +442,12 @@ InteractiveViewer mainMap(
                     child: mapFloor[mapFloorIndex]),
               ),
               SizedBox(
-                height: (MediaQuery.of(context).size.height - 150),
+                height: ((MediaQuery.of(context).size.height / 5) * 4) - 80,
                 width: (MediaQuery.of(context).size.width),
                 child: Container(
                   width: 24,
                   height: 24,
-                  margin: const EdgeInsets.all(200.0),
+                  margin: const EdgeInsets.all(170.0),
                   decoration: const BoxDecoration(
                       color: Colors.orange, shape: BoxShape.circle),
                 ),
