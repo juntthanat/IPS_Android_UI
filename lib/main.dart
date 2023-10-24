@@ -151,6 +151,11 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
     setState(() {
       currentBeaconInfo = beaconInfo;
+      
+      if (!beaconInfo.isEmpty()) {
+        coordinateXValue = currentBeaconInfo.x;
+        coordinateYValue = currentBeaconInfo.y;
+      }
     });
   }
 
@@ -429,7 +434,8 @@ InteractiveViewer mainMap(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         Transform.rotate(
-          angle: ((heading ?? 0) * (pi / 180) * -1),
+          //angle: ((heading ?? 0) * (pi / 180) * -1),
+          angle: 0,
           child: Stack(
             children: [
               Transform.translate(
