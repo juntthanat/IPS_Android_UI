@@ -50,6 +50,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     Image.asset(
       "assets/map/map_1.png",
       scale: 1.0,
+      height: 300,
+      width: 300,
     ),
     Image.asset(
       "assets/map/map_2.png",
@@ -421,7 +423,7 @@ InteractiveViewer mainMap(
   return InteractiveViewer(
     transformationController: mapTransformationController,
     minScale: 0.1,
-    maxScale: 3.0,
+    maxScale: 2.0,
     onInteractionStart: onInteractionStart,
     boundaryMargin: const EdgeInsets.all(double.infinity),
     child: Column(
@@ -432,24 +434,29 @@ InteractiveViewer mainMap(
           angle: ((heading ?? 0) * (pi / 180) * -1),
           child: Stack(
             children: [
-              Transform.translate(
-                offset: Offset(
-                  coordinateXValue,
-                  coordinateYValue,
+              Center(
+                child: Transform.translate(
+                  offset: Offset(
+                    coordinateXValue,
+                    coordinateYValue,
+                  ),
+                  child: Padding(
+                      padding: const EdgeInsets.all(80.0),
+                      child: mapFloor[mapFloorIndex]),
                 ),
-                child: Padding(
-                    padding: const EdgeInsets.all(80.0),
-                    child: mapFloor[mapFloorIndex]),
               ),
               SizedBox(
                 height: ((MediaQuery.of(context).size.height / 5) * 4) - 80,
                 width: (MediaQuery.of(context).size.width),
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  margin: const EdgeInsets.all(170.0),
-                  decoration: const BoxDecoration(
-                      color: Colors.orange, shape: BoxShape.circle),
+                child: Center(
+                  child: Container(
+                    height: 24,
+                    width: 24,
+                    decoration: const BoxDecoration(
+                      color: Colors.orange,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
                 ),
               ),
             ],
