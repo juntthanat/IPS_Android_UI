@@ -59,7 +59,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
   int mapFloorIndex = 0;
   Timer? refreshTimer;
-  final int REFRESH_RATE = 5;
+  final int REFRESH_RATE = 2;
 
   Beacon currentBeaconInfo = Beacon.empty();
 
