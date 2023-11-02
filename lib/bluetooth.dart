@@ -66,7 +66,8 @@ class BluetoothNotifier extends ChangeNotifier {
     bleDeviceStream = flutterReactiveBle.scanForDevices(withServices: [serviceUuid], scanMode: ScanMode.lowPower);
     bleDeviceStreamSubscription = bleDeviceStream.listen((device) async {
 
-      // print("Discovered: ${device.id}");
+      // Takes the discovered device and checks if it's already in our list.
+      // If not, add device to list.
       var idList = _devices.map((e) => e.id).toList();
       var idIdx = idList.indexOf(device.id);
       if (idIdx != -1) {
@@ -75,10 +76,11 @@ class BluetoothNotifier extends ChangeNotifier {
         _devices.add(BLEDevice(device));
       }
       
+      // Gets the device with the strongest signal
       _devices.sort((a, b) => a._rssi.compareTo(b._rssi));
       nearestDevice = _devices.last;
-      // print("Nearest Device: ${nearestDevice.id}    ${nearestDevice.rssi}");
       
+      // Notifies all subscribers
       notifyListeners();
 
     });
@@ -86,16 +88,19 @@ class BluetoothNotifier extends ChangeNotifier {
 
   }
   
+  /// Starts the Bluetooth Scanner
   void scan() {
     bleDeviceStreamSubscription.resume();
     scanning = true;
   }
   
+  /// Pauses the Bluetooth Scanner
   void pause() {
     bleDeviceStreamSubscription.pause();
     scanning = false;
   }
   
+  /// Toggles the Bluetooth Scanner. Internally calls pause() and resume()
   void toggle() {
     if (scanning) {
       pause();
@@ -104,6 +109,7 @@ class BluetoothNotifier extends ChangeNotifier {
     }
   }
 
+  /// Clears all devices from the _devices list
   void clear() {
     _devices.clear();
   }
