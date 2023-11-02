@@ -1,13 +1,17 @@
 import 'dart:async';
+import 'package:collection/collection.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+
+const NO_OF_RSSI_VALUES_TO_RETAIN = 5;
 
 class BLEDevice {
 
   late String _id;
   late String _name;
   late int _rssi;
+  final _rssiList = <int>[];
   
   String get id => _id;
   String get name => _name;
@@ -45,6 +49,15 @@ class BLEDevice {
     return false;
   }
   
+  /// Takes a DiscoveredDevice and update this device's rssi value
+  void updateRssi(DiscoveredDevice discoveredDevice) {
+    while (_rssiList.length >= NO_OF_RSSI_VALUES_TO_RETAIN) {
+      _rssiList.removeAt(0);
+    }
+    _rssiList.add(discoveredDevice.rssi);
+    _rssi = _rssiList.average.round();
+  }
+  
   @override
   String toString() {
     return "id: $_id  name: $_name  rssi: $_rssi";
@@ -71,7 +84,7 @@ class BluetoothNotifier extends ChangeNotifier {
       var idList = _devices.map((e) => e.id).toList();
       var idIdx = idList.indexOf(device.id);
       if (idIdx != -1) {
-        _devices[idIdx].rssi = device.rssi;
+        _devices[idIdx].updateRssi(device);
       } else {
         _devices.add(BLEDevice(device));
       }
