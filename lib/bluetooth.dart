@@ -11,6 +11,7 @@ class BLEDevice {
   late String _id;
   late String _name;
   late int _rssi;
+  late DateTime _lastDiscovered;
   final _rssiList = <int>[];
   
   String get id => _id;
@@ -33,16 +34,18 @@ class BLEDevice {
     _id = discoveredDevice.id;
     _name = discoveredDevice.name;
     _rssi = discoveredDevice.rssi;
+    _lastDiscovered = DateTime.now();
   }
 
   BLEDevice.empty() {
     _id = "";
     _name = "";
     _rssi = -100;
+    _lastDiscovered = DateTime(1970);
   }
   
   bool isEmpty() {
-    if (_id.isEmpty && _name.isEmpty && _rssi == -100) {
+    if (_id.isEmpty && _name.isEmpty && _rssi == -100 && _lastDiscovered == DateTime(1970)) {
       return true;
     }
     
@@ -58,9 +61,14 @@ class BLEDevice {
     _rssi = _rssiList.average.round();
   }
   
+  /// Updates the _lastDiscovered value by setting it to the current timestamp
+  void updateLastDiscovered() {
+    _lastDiscovered = DateTime.now();
+  }
+  
   @override
   String toString() {
-    return "id: $_id  name: $_name  rssi: $_rssi";
+    return "id: $_id  name: $_name  rssi: $_rssi lastDiscovered: ${DateTime.now().difference(_lastDiscovered).inSeconds} sec ago";
   }
 
 }
@@ -85,6 +93,7 @@ class BluetoothNotifier extends ChangeNotifier {
       var idIdx = idList.indexOf(device.id);
       if (idIdx != -1) {
         _devices[idIdx].updateRssi(device);
+        _devices[idIdx].updateLastDiscovered();
       } else {
         _devices.add(BLEDevice(device));
       }
@@ -125,5 +134,11 @@ class BluetoothNotifier extends ChangeNotifier {
   /// Clears all devices from the _devices list
   void clear() {
     _devices.clear();
+  }
+  
+  /// Clears all devices that have not been discovered in the last N seconds
+  void clearOldDevices(int seconds) {
+    var now = DateTime.now();
+    _devices.removeWhere((element) => now.difference(element._lastDiscovered).inSeconds > seconds);
   }
 }
