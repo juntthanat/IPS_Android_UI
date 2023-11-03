@@ -440,13 +440,14 @@ InteractiveViewer mainMap(
                     coordinateXValue,
                     coordinateYValue,
                   ),
-                  child: Padding(
-                      padding: const EdgeInsets.all(80.0),
-                      child: mapFloor[mapFloorIndex]),
+                  // child: Padding(
+                  //     padding: const EdgeInsets.all(80.0),
+                  //     child: mapFloor[mapFloorIndex]),
+                  child: mapFloor[mapFloorIndex],
                 ),
               ),
               SizedBox(
-                height: ((MediaQuery.of(context).size.height / 5) * 4) - 80,
+                height: ((MediaQuery.of(context).size.height / 5) * 4) - 90,
                 width: (MediaQuery.of(context).size.width),
                 child: Center(
                   child: Container(
