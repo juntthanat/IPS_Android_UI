@@ -10,6 +10,9 @@ import 'package:flutter_thesis_project/bluetooth.dart';
 import 'package:flutter_thesis_project/permissions.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+const REFRESH_RATE = 2;
+const LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC = 5;
+
 void main() {
   runApp(const MainApp());
 }
@@ -59,7 +62,6 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
   int mapFloorIndex = 0;
   Timer? refreshTimer;
-  final int REFRESH_RATE = 5;
 
   Beacon currentBeaconInfo = Beacon.empty();
 
@@ -128,9 +130,9 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     // To actually get the data from this, please check out how to use flutter's ChangeNotifier
     bluetoothNotifier.scan();
 
-    refreshTimer = Timer.periodic(Duration(seconds: REFRESH_RATE), (timer) {
+    refreshTimer = Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {
+      bluetoothNotifier.clearOldDevices(LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC);
       fetchPosition();
-      bluetoothNotifier.clear();
     });
   }
 
@@ -151,6 +153,11 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
     setState(() {
       currentBeaconInfo = beaconInfo;
+      
+      if (!beaconInfo.isEmpty()) {
+        coordinateXValue = currentBeaconInfo.x;
+        coordinateYValue = currentBeaconInfo.y;
+      }
     });
   }
 
@@ -429,7 +436,8 @@ InteractiveViewer mainMap(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         Transform.rotate(
-          angle: ((heading ?? 0) * (pi / 180) * -1),
+          //angle: ((heading ?? 0) * (pi / 180) * -1),
+          angle: 0,
           child: Stack(
             children: [
               Transform.translate(
