@@ -77,15 +77,25 @@ class BluetoothNotifier extends ChangeNotifier {
   final flutterReactiveBle = FlutterReactiveBle();
   final serviceUuid = Uuid.parse("422da7fb-7d15-425e-a65f-e0dbcc6f4c6a");
 
-  late Stream<DiscoveredDevice> bleDeviceStream;
-  late StreamSubscription<DiscoveredDevice> bleDeviceStreamSubscription;
-  var _devices = <BLEDevice>[];
+  late StreamSubscription<DiscoveredDevice>? bleDeviceStreamSubscription;
+  final _devices = <BLEDevice>[];
   BLEDevice nearestDevice = BLEDevice.empty();
   bool scanning = false;
+  bool isInitialized = false;
   
-  BluetoothNotifier() {
-    bleDeviceStream = flutterReactiveBle.scanForDevices(withServices: [serviceUuid], scanMode: ScanMode.lowPower);
-    bleDeviceStreamSubscription = bleDeviceStream.listen((device) async {
+  /// Initializes the BluetoothNotifier class
+  void init() {
+    bleDeviceStreamSubscription = flutterReactiveBle.scanForDevices(withServices: [serviceUuid], scanMode: ScanMode.lowPower)
+      .listen(bleListenCallback);
+    bleDeviceStreamSubscription?.pause();
+    isInitialized = true;
+  }
+  
+  /// Gets called when a new BLE device is discovered
+  void bleListenCallback(DiscoveredDevice device) async {
+      if (!isInitialized) {
+        return;
+      }
 
       // Takes the discovered device and checks if it's already in our list.
       // If not, add device to list.
@@ -104,26 +114,34 @@ class BluetoothNotifier extends ChangeNotifier {
       
       // Notifies all subscribers
       notifyListeners();
-
-    });
-    bleDeviceStreamSubscription.pause();
-
   }
   
   /// Starts the Bluetooth Scanner
   void scan() {
-    bleDeviceStreamSubscription.resume();
+    if (!isInitialized) {
+      return;
+    }
+
+    bleDeviceStreamSubscription?.resume();
     scanning = true;
   }
   
   /// Pauses the Bluetooth Scanner
   void pause() {
-    bleDeviceStreamSubscription.pause();
+    if (!isInitialized) {
+      return;
+    }
+
+    bleDeviceStreamSubscription?.pause();
     scanning = false;
   }
   
   /// Toggles the Bluetooth Scanner. Internally calls pause() and resume()
   void toggle() {
+    if (!isInitialized) {
+      return;
+    }
+
     if (scanning) {
       pause();
     } else {

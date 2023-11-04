@@ -128,6 +128,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
     // Does a simple bluetooth scan and prints the result to the console.
     // To actually get the data from this, please check out how to use flutter's ChangeNotifier
+    bluetoothNotifier.init();
     bluetoothNotifier.scan();
 
     refreshTimer = Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {
