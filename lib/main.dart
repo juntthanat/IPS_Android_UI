@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:async';
 
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/bluetooth.dart';
 import 'package:flutter_thesis_project/permissions.dart';
@@ -129,6 +131,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     // Does a simple bluetooth scan and prints the result to the console.
     // To actually get the data from this, please check out how to use flutter's ChangeNotifier
     bluetoothNotifier.init();
+    bluetoothNotifier.setScannerStatusStreamCallback(onBluetoothStatusChangeHandler);
     bluetoothNotifier.scan();
 
     refreshTimer = Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {
@@ -183,6 +186,25 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     }
 
     return permissionStatus;
+  }
+  
+  void onBluetoothStatusChangeHandler(BleStatus status) {
+    switch (status) {
+      case BleStatus.unknown:
+        sleep(const Duration(microseconds: 500));
+      case BleStatus.ready:
+        return;
+      case BleStatus.poweredOff:
+        if (context.mounted) {
+          Navigator.of(context)
+            .push(
+              MaterialPageRoute(builder: (cntx) => TurnOnBluetoothPage(bluetoothNotifier: bluetoothNotifier))
+            );
+        }
+        break;
+      default:
+        print("Unknown BleStatus: ${status.toString()}");
+    }
   }
 
   void setMapFloorByIndex(int floor) {

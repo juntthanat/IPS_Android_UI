@@ -86,34 +86,46 @@ class BluetoothNotifier extends ChangeNotifier {
   /// Initializes the BluetoothNotifier class
   void init() {
     bleDeviceStreamSubscription = flutterReactiveBle.scanForDevices(withServices: [serviceUuid], scanMode: ScanMode.lowPower)
-      .listen(bleListenCallback);
+      .listen(bleListenCallback, onError: bleListenErrorHandler, cancelOnError: false);
     bleDeviceStreamSubscription?.pause();
     isInitialized = true;
   }
   
   /// Gets called when a new BLE device is discovered
   void bleListenCallback(DiscoveredDevice device) async {
-      if (!isInitialized) {
-        return;
-      }
+    if (!isInitialized) {
+      return;
+    }
 
-      // Takes the discovered device and checks if it's already in our list.
-      // If not, add device to list.
-      var idList = _devices.map((e) => e.id).toList();
-      var idIdx = idList.indexOf(device.id);
-      if (idIdx != -1) {
-        _devices[idIdx].updateRssi(device);
-        _devices[idIdx].updateLastDiscovered();
-      } else {
-        _devices.add(BLEDevice(device));
-      }
-      
-      // Gets the device with the strongest signal
-      _devices.sort((a, b) => a._rssi.compareTo(b._rssi));
-      nearestDevice = _devices.last;
-      
-      // Notifies all subscribers
-      notifyListeners();
+    // Takes the discovered device and checks if it's already in our list.
+    // If not, add device to list.
+    var idList = _devices.map((e) => e.id).toList();
+    var idIdx = idList.indexOf(device.id);
+    if (idIdx != -1) {
+      _devices[idIdx].updateRssi(device);
+      _devices[idIdx].updateLastDiscovered();
+    } else {
+      _devices.add(BLEDevice(device));
+    }
+    
+    // Gets the device with the strongest signal
+    _devices.sort((a, b) => a._rssi.compareTo(b._rssi));
+    nearestDevice = _devices.last;
+    
+    // Notifies all subscribers
+    notifyListeners();
+  }
+  
+  /// The error handler for the BLE Device Stream subscription
+  void bleListenErrorHandler(Object exception) {
+    bleDeviceStreamSubscription?.pause();
+    print(exception.toString());
+  }
+  
+  /// Sets the callback to the Bluetooth Scanner's status
+  /// Argument must be of type Function(BleStatus status)
+  void setScannerStatusStreamCallback(Function(BleStatus status) callback) {
+    flutterReactiveBle.statusStream.listen(callback);
   }
   
   /// Starts the Bluetooth Scanner
@@ -147,6 +159,12 @@ class BluetoothNotifier extends ChangeNotifier {
     } else {
       scan();
     }
+  }
+  
+  /// Checks if the scanner is scanning.
+  /// The result will be based on the internal state
+  bool isScanning() {
+    return scanning;
   }
 
   /// Clears all devices from the _devices list
