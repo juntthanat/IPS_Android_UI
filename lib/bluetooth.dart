@@ -86,7 +86,7 @@ class BluetoothNotifier extends ChangeNotifier {
   /// Initializes the BluetoothNotifier class
   void init() {
     bleDeviceStreamSubscription = flutterReactiveBle.scanForDevices(withServices: [serviceUuid], scanMode: ScanMode.lowPower)
-      .listen(bleListenCallback, onError: bleListenErrorHandler, cancelOnError: false);
+      .listen(bleListenCallback, onError: bleListenErrorHandler);
     bleDeviceStreamSubscription?.pause();
     isInitialized = true;
   }
@@ -118,7 +118,6 @@ class BluetoothNotifier extends ChangeNotifier {
   
   /// The error handler for the BLE Device Stream subscription
   void bleListenErrorHandler(Object exception) {
-    bleDeviceStreamSubscription?.pause();
     print(exception.toString());
   }
   

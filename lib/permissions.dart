@@ -115,6 +115,7 @@ class TurnOnBluetoothPage extends StatelessWidget {
                           return;
                         }
 
+                        bluetoothNotifier.init();
                         bluetoothNotifier.scan();
                         if (context.mounted) {
                           Navigator.pop(context);
