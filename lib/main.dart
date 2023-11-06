@@ -220,50 +220,12 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(
-                        width: double.infinity,
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: screenConverter.getWidthPixel(0.3),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(9.0),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Image.asset(
-                                  "assets/compass/cadrant.png",
-                                  scale: 6.0,
-                                ),
-                                Transform.rotate(
-                                  angle: ((heading ?? 0) * (pi / 180) * -1),
-                                  child: Image.asset(
-                                      "assets/compass/compass.png",
-                                      scale: 6.0),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(9.0),
-                            child: Text(
-                              '${heading!.ceil()}',
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13.0,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
+                      // const SizedBox(
+                      //   width: double.infinity,
+                      // ),
+                      cadrantAngle(context, screenConverter, heading),
                     ],
                   ),
-
-                  //----------------------Testing for transition Input-----------------//
                   Positioned.fill(
                     child: Container(
                       alignment: Alignment.center,
@@ -334,7 +296,6 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  //----------------------Testing for transition Input-----------------//
                 ],
               ),
             ),
@@ -417,6 +378,43 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
       ],
     );
   }
+}
+
+Column cadrantAngle(BuildContext context, screenConverter, heading) {
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      SizedBox(
+        height: screenConverter.getHeightPixel(0.01),
+        width: screenConverter.getWidthPixel(0.3),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(9.0),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Image.asset(
+              "assets/compass/cadrant.png",
+              scale: 6.0,
+            ),
+            Transform.rotate(
+              angle: ((heading ?? 0) * (pi / 180) * -1),
+              child: Image.asset("assets/compass/compass.png", scale: 6.0),
+            ),
+          ],
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(9.0),
+        child: Text(
+          '${heading!.ceil()}',
+          style: const TextStyle(
+              color: Colors.white, fontSize: 13.0, fontWeight: FontWeight.bold),
+        ),
+      ),
+    ],
+  );
 }
 
 InteractiveViewer mainMap(
