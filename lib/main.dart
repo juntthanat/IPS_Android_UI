@@ -43,7 +43,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   double coordinateXValue = 0;
   double coordinateYValue = 0;
 
-  var screenConverter = ScreenSizeConverter();
+  static var screenConverter = ScreenSizeConverter();
 
   final TransformationController mapTransformationController =
       TransformationController();
@@ -54,8 +54,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     Image.asset(
       "assets/map/map_1.png",
       scale: 1.0,
-      height: 300,
-      width: 300,
+      height: screenConverter.getHeightPixel(0.75),
+      width: screenConverter.getWidthPixel(0.75),
     ),
     Image.asset(
       "assets/map/map_2.png",
