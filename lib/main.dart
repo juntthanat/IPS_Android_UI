@@ -12,6 +12,7 @@ import 'package:flutter_thesis_project/bluetooth.dart';
 import 'package:flutter_thesis_project/permissions.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'package:flutter_thesis_project/screensize_converter.dart';
 const REFRESH_RATE = 2;
 const LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC = 5;
 
@@ -46,6 +47,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   double coordinateXValue = 0;
   double coordinateYValue = 0;
 
+  static var screenConverter = ScreenSizeConverter();
+
   final TransformationController mapTransformationController =
       TransformationController();
   Animation<Matrix4>? mapAnimationReset;
@@ -55,6 +58,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     Image.asset(
       "assets/map/map_1.png",
       scale: 1.0,
+      height: screenConverter.getHeightPixel(0.75),
+      width: screenConverter.getWidthPixel(0.75),
     ),
     Image.asset(
       "assets/map/map_2.png",
@@ -221,6 +226,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: screenConverter
+            .getHeightPixel(0.05), // Header (Location Map) Height
         backgroundColor: Colors.grey.shade900,
         centerTitle: true,
         title: const Text("Location Map"),
@@ -232,8 +239,9 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              height: MediaQuery.of(context).size.height / 5,
-              width: (MediaQuery.of(context).size.width),
+              height: screenConverter
+                  .getHeightPixel(0.15), // Header (Compass) Height
+              width: screenConverter.getWidthPixel(1), // Header (Compass) Width
               color: Colors.grey[900],
               child: Stack(
                 children: [
@@ -241,50 +249,12 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(
-                        width: double.infinity,
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const SizedBox(
-                            width: 30,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(9.0),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Image.asset(
-                                  "assets/compass/cadrant.png",
-                                  scale: 5.0,
-                                ),
-                                Transform.rotate(
-                                  angle: ((heading ?? 0) * (pi / 180) * -1),
-                                  child: Image.asset(
-                                      "assets/compass/compass.png",
-                                      scale: 5.0),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(9.0),
-                            child: Text(
-                              '${heading!.ceil()}',
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13.0,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
+                      // const SizedBox(
+                      //   width: double.infinity,
+                      // ),
+                      cadrantAngle(context, screenConverter, heading),
                     ],
                   ),
-
-                  //----------------------Testing for transition Input-----------------//
                   Positioned.fill(
                     child: Container(
                       alignment: Alignment.center,
@@ -355,12 +325,11 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  //----------------------Testing for transition Input-----------------//
                 ],
               ),
             ),
             SizedBox(
-              height: ((MediaQuery.of(context).size.height / 5) * 4) - 90,
+              height: screenConverter.getHeightPixel(0.75),
               child: mainMap(
                   context,
                   mapTransformationController,
@@ -369,7 +338,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                   coordinateXValue,
                   coordinateYValue,
                   mapFloor,
-                  mapFloorIndex),
+                  mapFloorIndex,
+                  screenConverter),
             )
           ],
         ),
@@ -439,6 +409,43 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   }
 }
 
+Column cadrantAngle(BuildContext context, screenConverter, heading) {
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      SizedBox(
+        height: screenConverter.getHeightPixel(0.01),
+        width: screenConverter.getWidthPixel(0.3),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(9.0),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Image.asset(
+              "assets/compass/cadrant.png",
+              scale: 6.0,
+            ),
+            Transform.rotate(
+              angle: ((heading ?? 0) * (pi / 180) * -1),
+              child: Image.asset("assets/compass/compass.png", scale: 6.0),
+            ),
+          ],
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(9.0),
+        child: Text(
+          '${heading!.ceil()}',
+          style: const TextStyle(
+              color: Colors.white, fontSize: 13.0, fontWeight: FontWeight.bold),
+        ),
+      ),
+    ],
+  );
+}
+
 InteractiveViewer mainMap(
     BuildContext context,
     mapTransformationController,
@@ -447,11 +454,12 @@ InteractiveViewer mainMap(
     coordinateXValue,
     coordinateYValue,
     mapFloor,
-    mapFloorIndex) {
+    mapFloorIndex,
+    screenConverter) {
   return InteractiveViewer(
     transformationController: mapTransformationController,
     minScale: 0.1,
-    maxScale: 3.0,
+    maxScale: 2.0,
     onInteractionStart: onInteractionStart,
     boundaryMargin: const EdgeInsets.all(double.infinity),
     child: Column(
@@ -463,24 +471,29 @@ InteractiveViewer mainMap(
           angle: 0,
           child: Stack(
             children: [
-              Transform.translate(
-                offset: Offset(
-                  coordinateXValue,
-                  coordinateYValue,
+              Center(
+                child: Transform.translate(
+                  offset: Offset(
+                    // coordinateXValue,
+                    // coordinateYValue,
+                    screenConverter.getHeightPixel(coordinateXValue),
+                    screenConverter.getWidthPixel(coordinateYValue),
+                  ),
+                  child: mapFloor[mapFloorIndex],
                 ),
-                child: Padding(
-                    padding: const EdgeInsets.all(80.0),
-                    child: mapFloor[mapFloorIndex]),
               ),
               SizedBox(
-                height: ((MediaQuery.of(context).size.height / 5) * 4) - 80,
-                width: (MediaQuery.of(context).size.width),
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  margin: const EdgeInsets.all(170.0),
-                  decoration: const BoxDecoration(
-                      color: Colors.orange, shape: BoxShape.circle),
+                height: screenConverter.getHeightPixel(0.75),
+                width: screenConverter.getWidthPixel(1.0),
+                child: Center(
+                  child: Container(
+                    height: 24,
+                    width: 24,
+                    decoration: const BoxDecoration(
+                      color: Colors.orange,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
                 ),
               ),
             ],
