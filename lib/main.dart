@@ -13,6 +13,7 @@ import 'package:flutter_thesis_project/permissions.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:flutter_thesis_project/screensize_converter.dart';
+
 const REFRESH_RATE = 2;
 const LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC = 5;
 
@@ -136,10 +137,12 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     // Does a simple bluetooth scan and prints the result to the console.
     // To actually get the data from this, please check out how to use flutter's ChangeNotifier
     bluetoothNotifier.init();
-    bluetoothNotifier.setScannerStatusStreamCallback(onBluetoothStatusChangeHandler);
+    bluetoothNotifier
+        .setScannerStatusStreamCallback(onBluetoothStatusChangeHandler);
     bluetoothNotifier.scan();
 
-    refreshTimer = Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {
+    refreshTimer =
+        Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {
       bluetoothNotifier.clearOldDevices(LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC);
       fetchPosition();
     });
@@ -162,7 +165,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
     setState(() {
       currentBeaconInfo = beaconInfo;
-      
+
       if (!beaconInfo.isEmpty()) {
         coordinateXValue = currentBeaconInfo.x;
         coordinateYValue = currentBeaconInfo.y;
@@ -192,7 +195,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
     return permissionStatus;
   }
-  
+
   void onBluetoothStatusChangeHandler(BleStatus status) {
     switch (status) {
       case BleStatus.unknown:
@@ -201,10 +204,9 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
         return;
       case BleStatus.poweredOff:
         if (context.mounted) {
-          Navigator.of(context)
-            .push(
-              MaterialPageRoute(builder: (cntx) => TurnOnBluetoothPage(bluetoothNotifier: bluetoothNotifier))
-            );
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (cntx) =>
+                  TurnOnBluetoothPage(bluetoothNotifier: bluetoothNotifier)));
         }
         break;
       default:
@@ -238,7 +240,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
+            Container( // Header (Compass)
               height: screenConverter
                   .getHeightPixel(0.15), // Header (Compass) Height
               width: screenConverter.getWidthPixel(1), // Header (Compass) Width
@@ -249,9 +251,6 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // const SizedBox(
-                      //   width: double.infinity,
-                      // ),
                       cadrantAngle(context, screenConverter, heading),
                     ],
                   ),
@@ -418,29 +417,30 @@ Column cadrantAngle(BuildContext context, screenConverter, heading) {
         height: screenConverter.getHeightPixel(0.01),
         width: screenConverter.getWidthPixel(0.3),
       ),
-      Padding(
-        padding: const EdgeInsets.all(9.0),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Image.asset(
-              "assets/compass/cadrant.png",
+      Stack(
+        alignment: Alignment.center,
+        children: [
+          Image.asset(
+            "assets/compass/cadrant.png",
+            scale: 1.0,
+            height: screenConverter.getHeightPixel(0.1),
+            width: screenConverter.getWidthPixel(0.15),
+          ),
+          Transform.rotate(
+            angle: ((heading ?? 0) * (pi / 180) * -1),
+            child: Image.asset(
+              "assets/compass/compass.png",
               scale: 6.0,
+              height: screenConverter.getHeightPixel(0.05),
+              width: screenConverter.getWidthPixel(0.05),
             ),
-            Transform.rotate(
-              angle: ((heading ?? 0) * (pi / 180) * -1),
-              child: Image.asset("assets/compass/compass.png", scale: 6.0),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-      Padding(
-        padding: const EdgeInsets.all(9.0),
-        child: Text(
-          '${heading!.ceil()}',
-          style: const TextStyle(
-              color: Colors.white, fontSize: 13.0, fontWeight: FontWeight.bold),
-        ),
+      Text(
+        '${heading!.ceil()}',
+        style: const TextStyle(
+            color: Colors.white, fontSize: 13.0, fontWeight: FontWeight.bold),
       ),
     ],
   );
@@ -474,8 +474,6 @@ InteractiveViewer mainMap(
               Center(
                 child: Transform.translate(
                   offset: Offset(
-                    // coordinateXValue,
-                    // coordinateYValue,
                     screenConverter.getHeightPixel(coordinateXValue),
                     screenConverter.getWidthPixel(coordinateYValue),
                   ),

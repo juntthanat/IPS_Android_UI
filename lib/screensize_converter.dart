@@ -2,6 +2,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class ScreenSizeConverter {
+
+  // physical_size = WidgetsBinding.instance.platformDispatcher.view.first.physicalSize
+  // physical_height or physical_width = physical_size.(height or width)
+  // device_pixel_ratio = WidgetsBinding.instance.platformDispatcher.view.first.devicePixelRatio
+  // logical_size =  (Physical Size / Device Pixel Ratio)
+  // logical_height or logical_width = logical_size.(height or width)
+
   double logicalHeight =
       (WidgetsBinding.instance.platformDispatcher.views.first.physicalSize /
               WidgetsBinding
