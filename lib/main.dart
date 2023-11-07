@@ -10,6 +10,10 @@ import 'package:flutter_thesis_project/bluetooth.dart';
 import 'package:flutter_thesis_project/permissions.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'package:flutter_thesis_project/screensize_converter.dart';
+const REFRESH_RATE = 2;
+const LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC = 5;
+
 void main() {
   runApp(const MainApp());
 }
@@ -41,6 +45,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   double coordinateXValue = 0;
   double coordinateYValue = 0;
 
+  static var screenConverter = ScreenSizeConverter();
+
   final TransformationController mapTransformationController =
       TransformationController();
   Animation<Matrix4>? mapAnimationReset;
@@ -50,8 +56,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     Image.asset(
       "assets/map/map_1.png",
       scale: 1.0,
-      height: 300,
-      width: 300,
+      height: screenConverter.getHeightPixel(0.75),
+      width: screenConverter.getWidthPixel(0.75),
     ),
     Image.asset(
       "assets/map/map_2.png",
@@ -61,7 +67,6 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
   int mapFloorIndex = 0;
   Timer? refreshTimer;
-  final int REFRESH_RATE = 5;
 
   Beacon currentBeaconInfo = Beacon.empty();
 
@@ -130,9 +135,9 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     // To actually get the data from this, please check out how to use flutter's ChangeNotifier
     bluetoothNotifier.scan();
 
-    refreshTimer = Timer.periodic(Duration(seconds: REFRESH_RATE), (timer) {
+    refreshTimer = Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {
+      bluetoothNotifier.clearOldDevices(LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC);
       fetchPosition();
-      bluetoothNotifier.clear();
     });
   }
 
@@ -153,6 +158,11 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
     setState(() {
       currentBeaconInfo = beaconInfo;
+      
+      if (!beaconInfo.isEmpty()) {
+        coordinateXValue = currentBeaconInfo.x;
+        coordinateYValue = currentBeaconInfo.y;
+      }
     });
   }
 
@@ -193,6 +203,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: screenConverter
+            .getHeightPixel(0.05), // Header (Location Map) Height
         backgroundColor: Colors.grey.shade900,
         centerTitle: true,
         title: const Text("Location Map"),
@@ -204,8 +216,9 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              height: MediaQuery.of(context).size.height / 5,
-              width: (MediaQuery.of(context).size.width),
+              height: screenConverter
+                  .getHeightPixel(0.15), // Header (Compass) Height
+              width: screenConverter.getWidthPixel(1), // Header (Compass) Width
               color: Colors.grey[900],
               child: Stack(
                 children: [
@@ -213,50 +226,12 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(
-                        width: double.infinity,
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const SizedBox(
-                            width: 30,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(9.0),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Image.asset(
-                                  "assets/compass/cadrant.png",
-                                  scale: 5.0,
-                                ),
-                                Transform.rotate(
-                                  angle: ((heading ?? 0) * (pi / 180) * -1),
-                                  child: Image.asset(
-                                      "assets/compass/compass.png",
-                                      scale: 5.0),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(9.0),
-                            child: Text(
-                              '${heading!.ceil()}',
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13.0,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
+                      // const SizedBox(
+                      //   width: double.infinity,
+                      // ),
+                      cadrantAngle(context, screenConverter, heading),
                     ],
                   ),
-
-                  //----------------------Testing for transition Input-----------------//
                   Positioned.fill(
                     child: Container(
                       alignment: Alignment.center,
@@ -327,12 +302,11 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  //----------------------Testing for transition Input-----------------//
                 ],
               ),
             ),
             SizedBox(
-              height: ((MediaQuery.of(context).size.height / 5) * 4) - 90,
+              height: screenConverter.getHeightPixel(0.75),
               child: mainMap(
                   context,
                   mapTransformationController,
@@ -341,7 +315,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                   coordinateXValue,
                   coordinateYValue,
                   mapFloor,
-                  mapFloorIndex),
+                  mapFloorIndex,
+                  screenConverter),
             )
           ],
         ),
@@ -411,6 +386,43 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   }
 }
 
+Column cadrantAngle(BuildContext context, screenConverter, heading) {
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      SizedBox(
+        height: screenConverter.getHeightPixel(0.01),
+        width: screenConverter.getWidthPixel(0.3),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(9.0),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Image.asset(
+              "assets/compass/cadrant.png",
+              scale: 6.0,
+            ),
+            Transform.rotate(
+              angle: ((heading ?? 0) * (pi / 180) * -1),
+              child: Image.asset("assets/compass/compass.png", scale: 6.0),
+            ),
+          ],
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(9.0),
+        child: Text(
+          '${heading!.ceil()}',
+          style: const TextStyle(
+              color: Colors.white, fontSize: 13.0, fontWeight: FontWeight.bold),
+        ),
+      ),
+    ],
+  );
+}
+
 InteractiveViewer mainMap(
     BuildContext context,
     mapTransformationController,
@@ -419,7 +431,8 @@ InteractiveViewer mainMap(
     coordinateXValue,
     coordinateYValue,
     mapFloor,
-    mapFloorIndex) {
+    mapFloorIndex,
+    screenConverter) {
   return InteractiveViewer(
     transformationController: mapTransformationController,
     minScale: 0.1,
@@ -431,24 +444,24 @@ InteractiveViewer mainMap(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         Transform.rotate(
-          angle: ((heading ?? 0) * (pi / 180) * -1),
+          //angle: ((heading ?? 0) * (pi / 180) * -1),
+          angle: 0,
           child: Stack(
             children: [
               Center(
                 child: Transform.translate(
                   offset: Offset(
-                    coordinateXValue,
-                    coordinateYValue,
+                    // coordinateXValue,
+                    // coordinateYValue,
+                    screenConverter.getHeightPixel(coordinateXValue),
+                    screenConverter.getWidthPixel(coordinateYValue),
                   ),
-                  // child: Padding(
-                  //     padding: const EdgeInsets.all(80.0),
-                  //     child: mapFloor[mapFloorIndex]),
                   child: mapFloor[mapFloorIndex],
                 ),
               ),
               SizedBox(
-                height: ((MediaQuery.of(context).size.height / 5) * 4) - 90,
-                width: (MediaQuery.of(context).size.width),
+                height: screenConverter.getHeightPixel(0.75),
+                width: screenConverter.getWidthPixel(1.0),
                 child: Center(
                   child: Container(
                     height: 24,
