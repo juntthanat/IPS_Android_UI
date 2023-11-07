@@ -63,8 +63,10 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
       width: screenConverter.getWidthPixel(0.75),
     ),
     Image.asset(
-      "assets/map/map_2.png",
+      "assets/map/map_1_white.png",
       scale: 1.0,
+      height: screenConverter.getHeightPixel(0.75),
+      width: screenConverter.getWidthPixel(0.75),
     ),
   ];
 
@@ -240,7 +242,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container( // Header (Compass)
+            Container(
+              // Header (Compass)
               height: screenConverter
                   .getHeightPixel(0.15), // Header (Compass) Height
               width: screenConverter.getWidthPixel(1), // Header (Compass) Width
