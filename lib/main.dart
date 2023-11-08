@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:io';
 import 'dart:math';
 import 'dart:async';
@@ -74,6 +75,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   Timer? refreshTimer;
 
   Beacon currentBeaconInfo = Beacon.empty();
+  HashMap<String, Beacon> beaconMap = HashMap();
 
   void onMapAnimationReset() {
     mapTransformationController.value = mapAnimationReset!.value;
@@ -155,18 +157,21 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     if (bluetoothNotifier.nearestDevice.isEmpty()) {
       return;
     }
+    print("id: ${bluetoothNotifier.nearestDevice.id}    rssi: ${bluetoothNotifier.nearestDevice.rssi}");
 
-    print(
-        "id: ${bluetoothNotifier.nearestDevice.id}    rssi: ${bluetoothNotifier.nearestDevice.rssi}");
-    Beacon beaconInfo =
-        await fetchBeaconInfoFromMacAddress(bluetoothNotifier.nearestDevice.id);
+    Beacon? beaconInfo = beaconMap[bluetoothNotifier.nearestDevice.id];
+    if (beaconInfo == null) {
+      print("Fetching data...");
+      beaconInfo = await fetchBeaconInfoFromMacAddress(bluetoothNotifier.nearestDevice.id);
+      beaconMap[bluetoothNotifier.nearestDevice.id] = beaconInfo;
+    }
 
     if (beaconInfo.isEmpty()) {
       print("Beacon not found in database");
     }
 
     setState(() {
-      currentBeaconInfo = beaconInfo;
+      currentBeaconInfo = beaconInfo!;
 
       if (!beaconInfo.isEmpty()) {
         coordinateXValue = currentBeaconInfo.x;
