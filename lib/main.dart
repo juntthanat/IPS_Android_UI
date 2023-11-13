@@ -157,12 +157,14 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     if (bluetoothNotifier.nearestDevice.isEmpty()) {
       return;
     }
-    print("id: ${bluetoothNotifier.nearestDevice.id}    rssi: ${bluetoothNotifier.nearestDevice.rssi}");
+    print(
+        "id: ${bluetoothNotifier.nearestDevice.id}    rssi: ${bluetoothNotifier.nearestDevice.rssi}");
 
     Beacon? beaconInfo = beaconMap[bluetoothNotifier.nearestDevice.id];
     if (beaconInfo == null) {
       print("Fetching data...");
-      beaconInfo = await fetchBeaconInfoFromMacAddress(bluetoothNotifier.nearestDevice.id);
+      beaconInfo = await fetchBeaconInfoFromMacAddress(
+          bluetoothNotifier.nearestDevice.id);
       beaconMap[bluetoothNotifier.nearestDevice.id] = beaconInfo;
     }
 
@@ -269,59 +271,60 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.center,
+                        // Start (Input X, Input Y, and reset button)
                         children: [
-                          SizedBox(
-                            width: 100,
-                            child: TextField(
-                              onChanged: (inputX) {
-                                setState(() {
-                                  if (inputX == "" || inputX == "-") {
-                                    coordinateXValue = 0;
-                                  } else if (inputX[0] == "-") {
-                                    String nonNegativeString =
-                                        inputX.substring(1);
-                                    coordinateXValue =
-                                        -(double.parse(nonNegativeString));
-                                  } else {
-                                    coordinateXValue = double.parse(inputX);
-                                  }
-                                });
-                              },
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(),
-                                labelText: 'offsetX',
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 100,
-                            child: TextField(
-                              onChanged: (inputY) {
-                                setState(() {
-                                  if (inputY == "" || inputY == "-") {
-                                    coordinateXValue = 0;
-                                  } else if (inputY[0] == "-") {
-                                    String nonNegativeString =
-                                        inputY.substring(1);
-                                    coordinateYValue =
-                                        -(double.parse(nonNegativeString));
-                                  } else {
-                                    coordinateYValue = double.parse(inputY);
-                                  }
-                                });
-                              },
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(),
-                                labelText: 'offsetY',
-                              ),
-                            ),
-                          ),
+                          // SizedBox(
+                          //   width: 100,
+                          //   child: TextField(
+                          //     onChanged: (inputX) {
+                          //       setState(() {
+                          //         if (inputX == "" || inputX == "-") {
+                          //           coordinateXValue = 0;
+                          //         } else if (inputX[0] == "-") {
+                          //           String nonNegativeString =
+                          //               inputX.substring(1);
+                          //           coordinateXValue =
+                          //               -(double.parse(nonNegativeString));
+                          //         } else {
+                          //           coordinateXValue = double.parse(inputX);
+                          //         }
+                          //       });
+                          //     },
+                          //     keyboardType: TextInputType.number,
+                          //     decoration: const InputDecoration(
+                          //       filled: true,
+                          //       fillColor: Colors.white,
+                          //       border: OutlineInputBorder(),
+                          //       labelText: 'offsetX',
+                          //     ),
+                          //   ),
+                          // ),
+                          // SizedBox(
+                          //   width: 100,
+                          //   child: TextField(
+                          //     onChanged: (inputY) {
+                          //       setState(() {
+                          //         if (inputY == "" || inputY == "-") {
+                          //           coordinateXValue = 0;
+                          //         } else if (inputY[0] == "-") {
+                          //           String nonNegativeString =
+                          //               inputY.substring(1);
+                          //           coordinateYValue =
+                          //               -(double.parse(nonNegativeString));
+                          //         } else {
+                          //           coordinateYValue = double.parse(inputY);
+                          //         }
+                          //       });
+                          //     },
+                          //     keyboardType: TextInputType.number,
+                          //     decoration: const InputDecoration(
+                          //       filled: true,
+                          //       fillColor: Colors.white,
+                          //       border: OutlineInputBorder(),
+                          //       labelText: 'offsetY',
+                          //     ),
+                          //   ),
+                          // ),
                           FloatingActionButton.extended(
                             onPressed: () {
                               mapAnimationResetInitialize();
@@ -329,6 +332,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                             label: const Text("Reset"),
                           ),
                         ],
+                        // End (Input X, Input Y, and Reset Button)
                       ),
                     ),
                   ),
