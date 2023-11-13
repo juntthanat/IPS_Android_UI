@@ -325,12 +325,20 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                           //     ),
                           //   ),
                           // ),
-                          FloatingActionButton.extended(
-                            onPressed: () {
-                              mapAnimationResetInitialize();
-                            },
-                            label: const Text("Reset"),
-                          ),
+                          SizedBox(
+                              width: screenConverter.getWidthPixel(0.3),
+                              height: screenConverter.getHeightPixel(0.05),
+                              child: Container(
+                                alignment: Alignment.center,
+                                width: screenConverter.getWidthPixel(0.2),
+                                height: screenConverter.getHeightPixel(0.05),
+                                child: FloatingActionButton.extended(
+                                  onPressed: () {
+                                    mapAnimationResetInitialize();
+                                  },
+                                  label: const Text("Reset"),
+                                ),
+                              ))
                         ],
                         // End (Input X, Input Y, and Reset Button)
                       ),
@@ -427,7 +435,7 @@ Column cadrantAngle(BuildContext context, screenConverter, heading) {
     children: [
       SizedBox(
         height: screenConverter.getHeightPixel(0.01),
-        width: screenConverter.getWidthPixel(0.3),
+        width: screenConverter.getWidthPixel(0.6),
       ),
       Stack(
         alignment: Alignment.center,
