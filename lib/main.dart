@@ -165,11 +165,12 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
       print("Fetching data...");
       beaconInfo = await fetchBeaconInfoFromMacAddress(
           bluetoothNotifier.nearestDevice.id);
-      beaconMap[bluetoothNotifier.nearestDevice.id] = beaconInfo;
     }
 
     if (beaconInfo.isEmpty()) {
       print("Beacon not found in database");
+    } else  {
+      beaconMap[bluetoothNotifier.nearestDevice.id] = beaconInfo;
     }
 
     setState(() {
@@ -249,104 +250,104 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              // Header (Compass)
-              height: screenConverter
-                  .getHeightPixel(0.15), // Header (Compass) Height
-              width: screenConverter.getWidthPixel(1), // Header (Compass) Width
-              color: Colors.grey[900],
-              child: Stack(
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      cadrantAngle(context, screenConverter, heading),
-                    ],
-                  ),
-                  Positioned.fill(
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: 100,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        // Start (Input X, Input Y, and reset button)
-                        children: [
-                          // SizedBox(
-                          //   width: 100,
-                          //   child: TextField(
-                          //     onChanged: (inputX) {
-                          //       setState(() {
-                          //         if (inputX == "" || inputX == "-") {
-                          //           coordinateXValue = 0;
-                          //         } else if (inputX[0] == "-") {
-                          //           String nonNegativeString =
-                          //               inputX.substring(1);
-                          //           coordinateXValue =
-                          //               -(double.parse(nonNegativeString));
-                          //         } else {
-                          //           coordinateXValue = double.parse(inputX);
-                          //         }
-                          //       });
-                          //     },
-                          //     keyboardType: TextInputType.number,
-                          //     decoration: const InputDecoration(
-                          //       filled: true,
-                          //       fillColor: Colors.white,
-                          //       border: OutlineInputBorder(),
-                          //       labelText: 'offsetX',
-                          //     ),
-                          //   ),
-                          // ),
-                          // SizedBox(
-                          //   width: 100,
-                          //   child: TextField(
-                          //     onChanged: (inputY) {
-                          //       setState(() {
-                          //         if (inputY == "" || inputY == "-") {
-                          //           coordinateXValue = 0;
-                          //         } else if (inputY[0] == "-") {
-                          //           String nonNegativeString =
-                          //               inputY.substring(1);
-                          //           coordinateYValue =
-                          //               -(double.parse(nonNegativeString));
-                          //         } else {
-                          //           coordinateYValue = double.parse(inputY);
-                          //         }
-                          //       });
-                          //     },
-                          //     keyboardType: TextInputType.number,
-                          //     decoration: const InputDecoration(
-                          //       filled: true,
-                          //       fillColor: Colors.white,
-                          //       border: OutlineInputBorder(),
-                          //       labelText: 'offsetY',
-                          //     ),
-                          //   ),
-                          // ),
-                          SizedBox(
-                              width: screenConverter.getWidthPixel(0.3),
-                              height: screenConverter.getHeightPixel(0.05),
-                              child: Container(
-                                alignment: Alignment.center,
-                                width: screenConverter.getWidthPixel(0.2),
-                                height: screenConverter.getHeightPixel(0.05),
-                                child: FloatingActionButton.extended(
-                                  onPressed: () {
-                                    mapAnimationResetInitialize();
-                                  },
-                                  label: const Text("Reset"),
-                                ),
-                              ))
-                        ],
-                        // End (Input X, Input Y, and Reset Button)
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Container(
+            //   // Header (Compass)
+            //   height: screenConverter
+            //       .getHeightPixel(0.15), // Header (Compass) Height
+            //   width: screenConverter.getWidthPixel(1), // Header (Compass) Width
+            //   color: Colors.grey[900],
+            //   child: Stack(
+            //     children: [
+            //       Column(
+            //         mainAxisAlignment: MainAxisAlignment.start,
+            //         crossAxisAlignment: CrossAxisAlignment.start,
+            //         children: [
+            //           cadrantAngle(context, screenConverter, heading),
+            //         ],
+            //       ),
+            //       Positioned.fill(
+            //         child: Container(
+            //           alignment: Alignment.center,
+            //           height: 100,
+            //           child: Row(
+            //             mainAxisAlignment: MainAxisAlignment.end,
+            //             crossAxisAlignment: CrossAxisAlignment.center,
+            //             // Start (Input X, Input Y, and reset button)
+            //             children: [
+            //               // SizedBox(
+            //               //   width: 100,
+            //               //   child: TextField(
+            //               //     onChanged: (inputX) {
+            //               //       setState(() {
+            //               //         if (inputX == "" || inputX == "-") {
+            //               //           coordinateXValue = 0;
+            //               //         } else if (inputX[0] == "-") {
+            //               //           String nonNegativeString =
+            //               //               inputX.substring(1);
+            //               //           coordinateXValue =
+            //               //               -(double.parse(nonNegativeString));
+            //               //         } else {
+            //               //           coordinateXValue = double.parse(inputX);
+            //               //         }
+            //               //       });
+            //               //     },
+            //               //     keyboardType: TextInputType.number,
+            //               //     decoration: const InputDecoration(
+            //               //       filled: true,
+            //               //       fillColor: Colors.white,
+            //               //       border: OutlineInputBorder(),
+            //               //       labelText: 'offsetX',
+            //               //     ),
+            //               //   ),
+            //               // ),
+            //               // SizedBox(
+            //               //   width: 100,
+            //               //   child: TextField(
+            //               //     onChanged: (inputY) {
+            //               //       setState(() {
+            //               //         if (inputY == "" || inputY == "-") {
+            //               //           coordinateXValue = 0;
+            //               //         } else if (inputY[0] == "-") {
+            //               //           String nonNegativeString =
+            //               //               inputY.substring(1);
+            //               //           coordinateYValue =
+            //               //               -(double.parse(nonNegativeString));
+            //               //         } else {
+            //               //           coordinateYValue = double.parse(inputY);
+            //               //         }
+            //               //       });
+            //               //     },
+            //               //     keyboardType: TextInputType.number,
+            //               //     decoration: const InputDecoration(
+            //               //       filled: true,
+            //               //       fillColor: Colors.white,
+            //               //       border: OutlineInputBorder(),
+            //               //       labelText: 'offsetY',
+            //               //     ),
+            //               //   ),
+            //               // ),
+            //               SizedBox(
+            //                   width: screenConverter.getWidthPixel(0.3),
+            //                   height: screenConverter.getHeightPixel(0.05),
+            //                   child: Container(
+            //                     alignment: Alignment.center,
+            //                     width: screenConverter.getWidthPixel(0.2),
+            //                     height: screenConverter.getHeightPixel(0.05),
+            //                     child: FloatingActionButton.extended(
+            //                       onPressed: () {
+            //                         mapAnimationResetInitialize();
+            //                       },
+            //                       label: const Text("Reset"),
+            //                     ),
+            //                   ))
+            //             ],
+            //             // End (Input X, Input Y, and Reset Button)
+            //           ),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
             SizedBox(
               height: screenConverter.getHeightPixel(0.75),
               child: mainMap(
