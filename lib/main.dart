@@ -349,7 +349,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
             //   ),
             // ),
             SizedBox(
-              height: screenConverter.getHeightPixel(0.75),
+              height: screenConverter.getHeightPixel(0.9),
               child: mainMap(
                   context,
                   mapTransformationController,
