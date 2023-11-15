@@ -15,7 +15,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'package:flutter_thesis_project/screensize_converter.dart';
 
-const REFRESH_RATE = 2;
+const REFRESH_RATE = 1;
 const LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC = 5;
 
 void main() {
@@ -377,7 +377,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           width: 40,
           child: FittedBox(
             child: FloatingActionButton(
-              heroTag: "2F",
+              heroTag: "9F",
               backgroundColor: getCurrentMapFloorIndex() == 1
                   ? Colors.blue
                   : Theme.of(context).colorScheme.inversePrimary,
@@ -393,7 +393,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                 ),
               ),
               child: const Text(
-                "2F",
+                "9F",
                 style: TextStyle(fontSize: 20),
               ),
             ),
@@ -403,7 +403,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           width: 40,
           child: FittedBox(
             child: FloatingActionButton(
-              heroTag: "1F",
+              heroTag: "8F",
               backgroundColor: getCurrentMapFloorIndex() == 0
                   ? Colors.blue
                   : Theme.of(context).colorScheme.inversePrimary,
@@ -419,7 +419,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                 ),
               ),
               child: const Text(
-                "1F",
+                "8F",
                 style: TextStyle(fontSize: 20),
               ),
             ),
