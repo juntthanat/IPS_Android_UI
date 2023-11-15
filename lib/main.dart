@@ -359,7 +359,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                   coordinateYValue,
                   mapFloor,
                   mapFloorIndex,
-                  screenConverter),
+                  screenConverter,
+                  currentBeaconInfo),
             )
           ],
         ),
@@ -476,7 +477,8 @@ InteractiveViewer mainMap(
     coordinateYValue,
     mapFloor,
     mapFloorIndex,
-    screenConverter) {
+    screenConverter,
+    currentBeaconInfo) {
   return InteractiveViewer(
     transformationController: mapTransformationController,
     minScale: 0.1,
@@ -501,16 +503,19 @@ InteractiveViewer mainMap(
                   child: mapFloor[mapFloorIndex],
                 ),
               ),
-              SizedBox(
-                height: screenConverter.getHeightPixel(0.75),
-                width: screenConverter.getWidthPixel(1.0),
-                child: Center(
-                  child: Container(
-                    height: 24,
-                    width: 24,
-                    decoration: const BoxDecoration(
-                      color: Colors.orange,
-                      shape: BoxShape.circle,
+              Visibility(
+                visible: mapFloorIndex == 0 && currentBeaconInfo.getFloor() == 8 || mapFloorIndex == 1 && currentBeaconInfo.getFloor() == 9,
+                child: SizedBox(
+                  height: screenConverter.getHeightPixel(0.75),
+                  width: screenConverter.getWidthPixel(1.0),
+                  child: Center(
+                    child: Container(
+                      height: 24,
+                      width: 24,
+                      decoration: const BoxDecoration(
+                        color: Colors.orange,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
                 ),
