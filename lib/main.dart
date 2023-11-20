@@ -15,7 +15,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'package:flutter_thesis_project/screensize_converter.dart';
 
-const REFRESH_RATE = 2;
+const REFRESH_RATE = 1;
 const LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC = 5;
 
 void main() {
@@ -359,7 +359,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                   coordinateYValue,
                   mapFloor,
                   mapFloorIndex,
-                  screenConverter),
+                  screenConverter,
+                  currentBeaconInfo),
             )
           ],
         ),
@@ -376,7 +377,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           width: 40,
           child: FittedBox(
             child: FloatingActionButton(
-              heroTag: "2F",
+              heroTag: "9F",
               backgroundColor: getCurrentMapFloorIndex() == 1
                   ? Colors.blue
                   : Theme.of(context).colorScheme.inversePrimary,
@@ -392,7 +393,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                 ),
               ),
               child: const Text(
-                "2F",
+                "9F",
                 style: TextStyle(fontSize: 20),
               ),
             ),
@@ -402,7 +403,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           width: 40,
           child: FittedBox(
             child: FloatingActionButton(
-              heroTag: "1F",
+              heroTag: "8F",
               backgroundColor: getCurrentMapFloorIndex() == 0
                   ? Colors.blue
                   : Theme.of(context).colorScheme.inversePrimary,
@@ -418,7 +419,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                 ),
               ),
               child: const Text(
-                "1F",
+                "8F",
                 style: TextStyle(fontSize: 20),
               ),
             ),
@@ -476,7 +477,8 @@ InteractiveViewer mainMap(
     coordinateYValue,
     mapFloor,
     mapFloorIndex,
-    screenConverter) {
+    screenConverter,
+    currentBeaconInfo) {
   return InteractiveViewer(
     transformationController: mapTransformationController,
     minScale: 0.1,
@@ -501,16 +503,19 @@ InteractiveViewer mainMap(
                   child: mapFloor[mapFloorIndex],
                 ),
               ),
-              SizedBox(
-                height: screenConverter.getHeightPixel(0.75),
-                width: screenConverter.getWidthPixel(1.0),
-                child: Center(
-                  child: Container(
-                    height: 24,
-                    width: 24,
-                    decoration: const BoxDecoration(
-                      color: Colors.orange,
-                      shape: BoxShape.circle,
+              Visibility(
+                visible: mapFloorIndex == 0 && currentBeaconInfo.getFloor() == 8 || mapFloorIndex == 1 && currentBeaconInfo.getFloor() == 9,
+                child: SizedBox(
+                  height: screenConverter.getHeightPixel(0.75),
+                  width: screenConverter.getWidthPixel(1.0),
+                  child: Center(
+                    child: Container(
+                      height: 24,
+                      width: 24,
+                      decoration: const BoxDecoration(
+                        color: Colors.orange,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
                 ),
