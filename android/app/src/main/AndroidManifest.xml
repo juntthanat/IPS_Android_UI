@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="30" />
+    <application android:usesCleartextTraffic="true"></application>
     <application
         android:label="flutter_thesis_project"
         android:name="${applicationName}"

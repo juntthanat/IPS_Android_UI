@@ -1,12 +1,22 @@
+import 'dart:collection';
+import 'dart:io';
 import 'dart:math';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/bluetooth.dart';
 import 'package:flutter_thesis_project/permissions.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+import 'package:flutter_thesis_project/screensize_converter.dart';
+
+const REFRESH_RATE = 1;
+const LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC = 5;
 
 void main() {
   runApp(const MainApp());
@@ -39,6 +49,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   double coordinateXValue = 0;
   double coordinateYValue = 0;
 
+  static var screenConverter = ScreenSizeConverter();
+
   final TransformationController mapTransformationController =
       TransformationController();
   Animation<Matrix4>? mapAnimationReset;
@@ -47,15 +59,23 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   static List<Image> mapFloor = <Image>[
     Image.asset(
       "assets/map/map_1.png",
-      scale: 1.1,
+      scale: 1.0,
+      height: screenConverter.getHeightPixel(0.75),
+      width: screenConverter.getWidthPixel(0.75),
     ),
     Image.asset(
-      "assets/map/map_2.png",
-      scale: 1.1,
+      "assets/map/map_1_white.png",
+      scale: 1.0,
+      height: screenConverter.getHeightPixel(0.75),
+      width: screenConverter.getWidthPixel(0.75),
     ),
   ];
 
   int mapFloorIndex = 0;
+  Timer? refreshTimer;
+
+  Beacon currentBeaconInfo = Beacon.empty();
+  HashMap<String, Beacon> beaconMap = HashMap();
 
   void onMapAnimationReset() {
     mapTransformationController.value = mapAnimationReset!.value;
@@ -93,12 +113,13 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    refreshTimer?.cancel();
     mapControllerReset.dispose();
     super.dispose();
   }
 
   // To Scan Bluetooth: Uncomment this
-  //var bluetoothNotifer = BluetoothNotifier();
+  var bluetoothNotifier = BluetoothNotifier();
 
   @override
   void initState() {
@@ -119,7 +140,47 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
     // Does a simple bluetooth scan and prints the result to the console.
     // To actually get the data from this, please check out how to use flutter's ChangeNotifier
-    //bluetoothNotifer.scan();
+    bluetoothNotifier.init();
+    bluetoothNotifier
+        .setScannerStatusStreamCallback(onBluetoothStatusChangeHandler);
+    bluetoothNotifier.scan();
+
+    refreshTimer =
+        Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {
+      bluetoothNotifier.clearOldDevices(LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC);
+      fetchPosition();
+    });
+  }
+
+  // Fetches the position of the nearest Bluetooth Beacon
+  void fetchPosition() async {
+    if (bluetoothNotifier.nearestDevice.isEmpty()) {
+      return;
+    }
+    print(
+        "id: ${bluetoothNotifier.nearestDevice.id}    rssi: ${bluetoothNotifier.nearestDevice.rssi}");
+
+    Beacon? beaconInfo = beaconMap[bluetoothNotifier.nearestDevice.id];
+    if (beaconInfo == null) {
+      print("Fetching data...");
+      beaconInfo = await fetchBeaconInfoFromMacAddress(
+          bluetoothNotifier.nearestDevice.id);
+    }
+
+    if (beaconInfo.isEmpty()) {
+      print("Beacon not found in database");
+    } else  {
+      beaconMap[bluetoothNotifier.nearestDevice.id] = beaconInfo;
+    }
+
+    setState(() {
+      currentBeaconInfo = beaconInfo!;
+
+      if (!beaconInfo.isEmpty()) {
+        coordinateXValue = currentBeaconInfo.x;
+        coordinateYValue = currentBeaconInfo.y;
+      }
+    });
   }
 
   // Requests and Validates App Permissions
@@ -145,6 +206,24 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     return permissionStatus;
   }
 
+  void onBluetoothStatusChangeHandler(BleStatus status) {
+    switch (status) {
+      case BleStatus.unknown:
+        sleep(const Duration(microseconds: 500));
+      case BleStatus.ready:
+        return;
+      case BleStatus.poweredOff:
+        if (context.mounted) {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (cntx) =>
+                  TurnOnBluetoothPage(bluetoothNotifier: bluetoothNotifier)));
+        }
+        break;
+      default:
+        print("Unknown BleStatus: ${status.toString()}");
+    }
+  }
+
   void setMapFloorByIndex(int floor) {
     setState(() {
       mapFloorIndex = floor % mapFloor.length;
@@ -159,6 +238,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: screenConverter
+            .getHeightPixel(0.05), // Header (Location Map) Height
         backgroundColor: Colors.grey.shade900,
         centerTitle: true,
         title: const Text("Location Map"),
@@ -169,177 +250,117 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              color: Colors.grey[900],
-              child: Stack(
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(
-                        height: 5.0,
-                        width: double.infinity,
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const SizedBox(
-                            height: 5.0,
-                            width: 30,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(9.0),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Image.asset(
-                                  "assets/compass/cadrant.png",
-                                  scale: 5.0,
-                                ),
-                                Transform.rotate(
-                                  angle: ((heading ?? 0) * (pi / 180) * -1),
-                                  child: Image.asset(
-                                      "assets/compass/compass.png",
-                                      scale: 5.0),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(9.0),
-                            child: Text(
-                              '${heading!.ceil()}',
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13.0,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                  //----------------------Testing for transition Input-----------------//
-                  Positioned.fill(
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: 100,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 100,
-                            child: TextField(
-                              onChanged: (inputX) {
-                                setState(() {
-                                  if (inputX == "" || inputX == "-") {
-                                    coordinateXValue = 0;
-                                  } else if (inputX[0] == "-") {
-                                    String nonNegativeString =
-                                        inputX.substring(1);
-                                    coordinateXValue =
-                                        -(double.parse(nonNegativeString));
-                                  } else {
-                                    coordinateXValue = double.parse(inputX);
-                                  }
-                                });
-                              },
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(),
-                                labelText: 'offsetX',
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 100,
-                            child: TextField(
-                              onChanged: (inputY) {
-                                setState(() {
-                                  if (inputY == "" || inputY == "-") {
-                                    coordinateXValue = 0;
-                                  } else if (inputY[0] == "-") {
-                                    String nonNegativeString =
-                                        inputY.substring(1);
-                                    coordinateYValue =
-                                        -(double.parse(nonNegativeString));
-                                  } else {
-                                    coordinateYValue = double.parse(inputY);
-                                  }
-                                });
-                              },
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(),
-                                labelText: 'offsetY',
-                              ),
-                            ),
-                          ),
-                          FloatingActionButton.extended(
-                            onPressed: () {
-                              mapAnimationResetInitialize();
-                            },
-                            label: const Text("Reset"),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  //----------------------Testing for transition Input-----------------//
-                ],
-              ),
-            ),
-            InteractiveViewer(
-              transformationController: mapTransformationController,
-              minScale: 0.1,
-              maxScale: 3.0,
-              onInteractionStart: _onInteractionStart,
-              boundaryMargin: const EdgeInsets.all(double.infinity),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Transform.rotate(
-                    angle: ((heading ?? 0) * (pi / 180) * -1),
-                    child: Stack(
-                      children: [
-                        Transform.translate(
-                          offset: Offset(
-                            coordinateXValue,
-                            coordinateYValue,
-                          ),
-                          child: Padding(
-                              padding: const EdgeInsets.all(80.0),
-                              child: mapFloor[mapFloorIndex]
-                              // child: Transform.rotate(
-                              //   angle: ((heading ?? 0) * (pi / 180) * -1),
-                              //   child: mapFloor[mapFloorIndex],
-                              // ),
-                              ),
-                        ),
-                        Container(
-                          width: 24,
-                          height: 24,
-                          margin: const EdgeInsets.all(100.0),
-                          decoration: const BoxDecoration(
-                              color: Colors.orange, shape: BoxShape.circle),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            // Container(
+            //   // Header (Compass)
+            //   height: screenConverter
+            //       .getHeightPixel(0.15), // Header (Compass) Height
+            //   width: screenConverter.getWidthPixel(1), // Header (Compass) Width
+            //   color: Colors.grey[900],
+            //   child: Stack(
+            //     children: [
+            //       Column(
+            //         mainAxisAlignment: MainAxisAlignment.start,
+            //         crossAxisAlignment: CrossAxisAlignment.start,
+            //         children: [
+            //           cadrantAngle(context, screenConverter, heading),
+            //         ],
+            //       ),
+            //       Positioned.fill(
+            //         child: Container(
+            //           alignment: Alignment.center,
+            //           height: 100,
+            //           child: Row(
+            //             mainAxisAlignment: MainAxisAlignment.end,
+            //             crossAxisAlignment: CrossAxisAlignment.center,
+            //             // Start (Input X, Input Y, and reset button)
+            //             children: [
+            //               // SizedBox(
+            //               //   width: 100,
+            //               //   child: TextField(
+            //               //     onChanged: (inputX) {
+            //               //       setState(() {
+            //               //         if (inputX == "" || inputX == "-") {
+            //               //           coordinateXValue = 0;
+            //               //         } else if (inputX[0] == "-") {
+            //               //           String nonNegativeString =
+            //               //               inputX.substring(1);
+            //               //           coordinateXValue =
+            //               //               -(double.parse(nonNegativeString));
+            //               //         } else {
+            //               //           coordinateXValue = double.parse(inputX);
+            //               //         }
+            //               //       });
+            //               //     },
+            //               //     keyboardType: TextInputType.number,
+            //               //     decoration: const InputDecoration(
+            //               //       filled: true,
+            //               //       fillColor: Colors.white,
+            //               //       border: OutlineInputBorder(),
+            //               //       labelText: 'offsetX',
+            //               //     ),
+            //               //   ),
+            //               // ),
+            //               // SizedBox(
+            //               //   width: 100,
+            //               //   child: TextField(
+            //               //     onChanged: (inputY) {
+            //               //       setState(() {
+            //               //         if (inputY == "" || inputY == "-") {
+            //               //           coordinateXValue = 0;
+            //               //         } else if (inputY[0] == "-") {
+            //               //           String nonNegativeString =
+            //               //               inputY.substring(1);
+            //               //           coordinateYValue =
+            //               //               -(double.parse(nonNegativeString));
+            //               //         } else {
+            //               //           coordinateYValue = double.parse(inputY);
+            //               //         }
+            //               //       });
+            //               //     },
+            //               //     keyboardType: TextInputType.number,
+            //               //     decoration: const InputDecoration(
+            //               //       filled: true,
+            //               //       fillColor: Colors.white,
+            //               //       border: OutlineInputBorder(),
+            //               //       labelText: 'offsetY',
+            //               //     ),
+            //               //   ),
+            //               // ),
+            //               SizedBox(
+            //                   width: screenConverter.getWidthPixel(0.3),
+            //                   height: screenConverter.getHeightPixel(0.05),
+            //                   child: Container(
+            //                     alignment: Alignment.center,
+            //                     width: screenConverter.getWidthPixel(0.2),
+            //                     height: screenConverter.getHeightPixel(0.05),
+            //                     child: FloatingActionButton.extended(
+            //                       onPressed: () {
+            //                         mapAnimationResetInitialize();
+            //                       },
+            //                       label: const Text("Reset"),
+            //                     ),
+            //                   ))
+            //             ],
+            //             // End (Input X, Input Y, and Reset Button)
+            //           ),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+            SizedBox(
+              height: screenConverter.getHeightPixel(0.9),
+              child: mainMap(
+                  context,
+                  mapTransformationController,
+                  _onInteractionStart,
+                  heading,
+                  coordinateXValue,
+                  coordinateYValue,
+                  mapFloor,
+                  mapFloorIndex,
+                  screenConverter,
+                  currentBeaconInfo),
             )
           ],
         ),
@@ -356,7 +377,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           width: 40,
           child: FittedBox(
             child: FloatingActionButton(
-              heroTag: "2F",
+              heroTag: "9F",
               backgroundColor: getCurrentMapFloorIndex() == 1
                   ? Colors.blue
                   : Theme.of(context).colorScheme.inversePrimary,
@@ -372,7 +393,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                 ),
               ),
               child: const Text(
-                "2F",
+                "9F",
                 style: TextStyle(fontSize: 20),
               ),
             ),
@@ -382,7 +403,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           width: 40,
           child: FittedBox(
             child: FloatingActionButton(
-              heroTag: "1F",
+              heroTag: "8F",
               backgroundColor: getCurrentMapFloorIndex() == 0
                   ? Colors.blue
                   : Theme.of(context).colorScheme.inversePrimary,
@@ -398,7 +419,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                 ),
               ),
               child: const Text(
-                "1F",
+                "8F",
                 style: TextStyle(fontSize: 20),
               ),
             ),
@@ -407,4 +428,102 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
       ],
     );
   }
+}
+
+Column cadrantAngle(BuildContext context, screenConverter, heading) {
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      SizedBox(
+        height: screenConverter.getHeightPixel(0.01),
+        width: screenConverter.getWidthPixel(0.6),
+      ),
+      Stack(
+        alignment: Alignment.center,
+        children: [
+          Image.asset(
+            "assets/compass/cadrant.png",
+            scale: 1.0,
+            height: screenConverter.getHeightPixel(0.1),
+            width: screenConverter.getWidthPixel(0.15),
+          ),
+          Transform.rotate(
+            angle: ((heading ?? 0) * (pi / 180) * -1),
+            child: Image.asset(
+              "assets/compass/compass.png",
+              scale: 6.0,
+              height: screenConverter.getHeightPixel(0.05),
+              width: screenConverter.getWidthPixel(0.05),
+            ),
+          ),
+        ],
+      ),
+      Text(
+        '${heading!.ceil()}',
+        style: const TextStyle(
+            color: Colors.white, fontSize: 13.0, fontWeight: FontWeight.bold),
+      ),
+    ],
+  );
+}
+
+InteractiveViewer mainMap(
+    BuildContext context,
+    mapTransformationController,
+    onInteractionStart,
+    heading,
+    coordinateXValue,
+    coordinateYValue,
+    mapFloor,
+    mapFloorIndex,
+    screenConverter,
+    currentBeaconInfo) {
+  return InteractiveViewer(
+    transformationController: mapTransformationController,
+    minScale: 0.1,
+    maxScale: 2.0,
+    onInteractionStart: onInteractionStart,
+    boundaryMargin: const EdgeInsets.all(double.infinity),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Transform.rotate(
+          //angle: ((heading ?? 0) * (pi / 180) * -1),
+          angle: 0,
+          child: Stack(
+            children: [
+              Center(
+                child: Transform.translate(
+                  offset: Offset(
+                    screenConverter.getHeightPixel(coordinateXValue),
+                    screenConverter.getWidthPixel(coordinateYValue),
+                  ),
+                  child: mapFloor[mapFloorIndex],
+                ),
+              ),
+              Visibility(
+                visible: mapFloorIndex == 0 && currentBeaconInfo.getFloor() == 8 || mapFloorIndex == 1 && currentBeaconInfo.getFloor() == 9,
+                child: SizedBox(
+                  height: screenConverter.getHeightPixel(0.75),
+                  width: screenConverter.getWidthPixel(1.0),
+                  child: Center(
+                    child: Container(
+                      height: 24,
+                      width: 24,
+                      decoration: const BoxDecoration(
+                        color: Colors.orange,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 }
