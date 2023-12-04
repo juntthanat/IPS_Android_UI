@@ -143,13 +143,6 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     }
   }
 
-  @override
-  void dispose() {
-    refreshTimer?.cancel();
-    mapControllerReset.dispose();
-    super.dispose();
-  }
-
   // Fetches the position of the nearest Bluetooth Beacon
   void fetchPosition() async {
     if (bluetoothNotifier.nearestDevice.isEmpty()) {
@@ -327,6 +320,13 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
         )
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    refreshTimer?.cancel();
+    mapControllerReset.dispose();
+    super.dispose();
   }
 }
 
