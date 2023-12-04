@@ -78,6 +78,37 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     ),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    initPermissionRequest();
+
+    // Init Compass heading
+    FlutterCompass.events!.listen((event) {
+      setState(() {
+        heading = event.heading;
+      });
+    });
+
+    mapControllerReset = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+
+    // Does a simple bluetooth scan and prints the result to the console.
+    // To actually get the data from this, please check out how to use flutter's ChangeNotifier
+    bluetoothNotifier.init();
+    bluetoothNotifier
+        .setScannerStatusStreamCallback(onBluetoothStatusChangeHandler);
+    bluetoothNotifier.scan();
+
+    refreshTimer =
+        Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {
+      bluetoothNotifier.clearOldDevices(LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC);
+      fetchPosition();
+    });
+  }
+
   void onMapAnimationReset() {
     mapTransformationController.value = mapAnimationReset!.value;
     if (!mapControllerReset.isAnimating) {
@@ -117,37 +148,6 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     refreshTimer?.cancel();
     mapControllerReset.dispose();
     super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initPermissionRequest();
-
-    // Init Compass heading
-    FlutterCompass.events!.listen((event) {
-      setState(() {
-        heading = event.heading;
-      });
-    });
-
-    mapControllerReset = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-
-    // Does a simple bluetooth scan and prints the result to the console.
-    // To actually get the data from this, please check out how to use flutter's ChangeNotifier
-    bluetoothNotifier.init();
-    bluetoothNotifier
-        .setScannerStatusStreamCallback(onBluetoothStatusChangeHandler);
-    bluetoothNotifier.scan();
-
-    refreshTimer =
-        Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {
-      bluetoothNotifier.clearOldDevices(LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC);
-      fetchPosition();
-    });
   }
 
   // Fetches the position of the nearest Bluetooth Beacon
