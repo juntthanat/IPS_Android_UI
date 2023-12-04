@@ -56,6 +56,13 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   Animation<Matrix4>? mapAnimationReset;
   late final AnimationController mapControllerReset;
 
+  int mapFloorIndex = 0;
+  Timer? refreshTimer;
+
+  Beacon currentBeaconInfo = Beacon.empty();
+  HashMap<String, Beacon> beaconMap = HashMap();
+  var bluetoothNotifier = BluetoothNotifier();
+
   static List<Image> mapFloor = <Image>[
     Image.asset(
       "assets/map/map_1.png",
@@ -70,12 +77,6 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
       width: screenConverter.getWidthPixel(0.75),
     ),
   ];
-
-  int mapFloorIndex = 0;
-  Timer? refreshTimer;
-
-  Beacon currentBeaconInfo = Beacon.empty();
-  HashMap<String, Beacon> beaconMap = HashMap();
 
   void onMapAnimationReset() {
     mapTransformationController.value = mapAnimationReset!.value;
@@ -117,9 +118,6 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     mapControllerReset.dispose();
     super.dispose();
   }
-
-  // To Scan Bluetooth: Uncomment this
-  var bluetoothNotifier = BluetoothNotifier();
 
   @override
   void initState() {
