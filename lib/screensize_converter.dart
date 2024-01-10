@@ -1,6 +1,15 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
+class DevicePixelMapper {
+  double devicePixelRatio = WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
+ 
+  // Converts Logical Pixel to Physical Pixel
+  double getConvertedPixel(double logicalPixel) {
+    return logicalPixel * devicePixelRatio;
+  }
+}
+
 class ScreenSizeConverter {
 
   // physical_size = WidgetsBinding.instance.platformDispatcher.view.first.physicalSize
