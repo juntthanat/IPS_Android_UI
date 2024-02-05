@@ -60,8 +60,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     Image.asset(
       "assets/map/map_1.png",
       scale: 1.0,
-      height: screenConverter.getHeightPixel(0.75),
-      width: screenConverter.getWidthPixel(0.75),
+/*       height: screenConverter.getHeightPixel(0.75),
+      width: screenConverter.getWidthPixel(0.75), */
     ),
     Image.asset(
       "assets/map/map_1_white.png",
@@ -506,8 +506,10 @@ InteractiveViewer mainMap(
                   offset: Offset(
 /*                     screenConverter.getHeightPixel(coordinateXValue),
                     screenConverter.getWidthPixel(coordinateYValue), */
-                    devicePixelMapper.getConvertedPixel(coordinateXValue),
-                    devicePixelMapper.getConvertedPixel(coordinateYValue),
+                    // devicePixelMapper.getConvertedPixel(coordinateXValue),
+                    // devicePixelMapper.getConvertedPixel(coordinateYValue),
+                    coordinateXValue * -1,
+                    coordinateYValue - 50,
                   ),
                   child: mapFloor[mapFloorIndex],
                 ),

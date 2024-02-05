@@ -6,7 +6,8 @@ class DevicePixelMapper {
  
   // Converts Logical Pixel to Physical Pixel
   double getConvertedPixel(double logicalPixel) {
-    return logicalPixel * devicePixelRatio;
+    // return logicalPixel * devicePixelRatio;
+    return logicalPixel;
   }
 }
 
