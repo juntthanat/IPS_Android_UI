@@ -509,7 +509,7 @@ InteractiveViewer mainMap(
                     // devicePixelMapper.getConvertedPixel(coordinateXValue),
                     // devicePixelMapper.getConvertedPixel(coordinateYValue),
                     coordinateXValue * -1,
-                    coordinateYValue - 50,
+                    coordinateYValue - 47.5,
                   ),
                   child: mapFloor[mapFloorIndex],
                 ),
