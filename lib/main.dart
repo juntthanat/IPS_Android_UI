@@ -262,7 +262,11 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      cadrantAngle(context, screenConverter, heading),
+                      // cadrantAngle(context, screenConverter, heading),
+                      Text(
+                        "(X: $coordinateXValue, Y: $coordinateYValue)",
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ],
                   ),
                   Positioned.fill(
@@ -339,7 +343,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                                   },
                                   label: const Text("Reset"),
                                 ),
-                              ))
+                              )
+                            )
                         ],
                         // End (Input X, Input Y, and Reset Button)
                       ),
@@ -508,17 +513,24 @@ InteractiveViewer mainMap(
                 ),
               ),
               Visibility(
-                visible: mapFloorIndex == 0 && currentBeaconInfo.getFloor() == 8 || mapFloorIndex == 1 && currentBeaconInfo.getFloor() == 9,
+                // TODO: REVERT
+                // visible: mapFloorIndex == 0 && currentBeaconInfo.getFloor() == 8 || mapFloorIndex == 1 && currentBeaconInfo.getFloor() == 9,
+                visible: true,
                 child: SizedBox(
                   height: screenConverter.getHeightPixel(0.75),
                   width: screenConverter.getWidthPixel(1.0),
                   child: Center(
                     child: Container(
-                      height: 24,
-                      width: 24,
+                      // TODO: REVERT
+                      /* height: 24,
+                      width: 24, */
+                      height: 10,
+                      width: 10,
                       decoration: const BoxDecoration(
                         color: Colors.orange,
-                        shape: BoxShape.circle,
+                        shape: BoxShape.rectangle,
+                        // TODO: REVERT
+                        // shape: BoxShape.circle,
                       ),
                     ),
                   ),
