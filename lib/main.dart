@@ -58,13 +58,13 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
   static List<Image> mapFloor = <Image>[
     Image.asset(
-      "assets/map/map_1.png",
+      "assets/map/map_7th_floor.png",
       scale: 1.0,
       height: screenConverter.getHeightPixel(0.75),
       width: screenConverter.getWidthPixel(0.75),
     ),
     Image.asset(
-      "assets/map/map_1_white.png",
+      "assets/map/map_8th_floor.png",
       scale: 1.0,
       height: screenConverter.getHeightPixel(0.75),
       width: screenConverter.getWidthPixel(0.75),
@@ -377,7 +377,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           width: 40,
           child: FittedBox(
             child: FloatingActionButton(
-              heroTag: "9F",
+              heroTag: "8F",
               backgroundColor: getCurrentMapFloorIndex() == 1
                   ? Colors.blue
                   : Theme.of(context).colorScheme.inversePrimary,
@@ -393,7 +393,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                 ),
               ),
               child: const Text(
-                "9F",
+                "8F",
                 style: TextStyle(fontSize: 20),
               ),
             ),
@@ -403,7 +403,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           width: 40,
           child: FittedBox(
             child: FloatingActionButton(
-              heroTag: "8F",
+              heroTag: "7F",
               backgroundColor: getCurrentMapFloorIndex() == 0
                   ? Colors.blue
                   : Theme.of(context).colorScheme.inversePrimary,
@@ -419,7 +419,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                 ),
               ),
               child: const Text(
-                "8F",
+                "7F",
                 style: TextStyle(fontSize: 20),
               ),
             ),
@@ -504,7 +504,7 @@ InteractiveViewer mainMap(
                 ),
               ),
               Visibility(
-                visible: mapFloorIndex == 0 && currentBeaconInfo.getFloor() == 8 || mapFloorIndex == 1 && currentBeaconInfo.getFloor() == 9,
+                visible: mapFloorIndex == 0 && currentBeaconInfo.getFloor() == 7 || mapFloorIndex == 1 && currentBeaconInfo.getFloor() == 8,
                 child: SizedBox(
                   height: screenConverter.getHeightPixel(0.75),
                   width: screenConverter.getWidthPixel(1.0),
