@@ -508,8 +508,8 @@ InteractiveViewer mainMap(
                     screenConverter.getWidthPixel(coordinateYValue), */
                     // devicePixelMapper.getConvertedPixel(coordinateXValue),
                     // devicePixelMapper.getConvertedPixel(coordinateYValue),
-                    coordinateXValue * -1,
-                    coordinateYValue - 47.5,
+                    ImageRatioMapper.getWidthPixel(coordinateXValue * -1, mapFloor[mapFloorIndex]),
+                    ImageRatioMapper.getHeightPixel(coordinateYValue, mapFloor[mapFloorIndex]) - 20,
                   ),
                   child: mapFloor[mapFloorIndex],
                 ),

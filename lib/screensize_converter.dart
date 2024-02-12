@@ -1,5 +1,26 @@
+import 'dart:developer';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+
+class ImageRatioMapper {
+  // TODO: Find a way to use requests or something
+  static const trueWidth = 2760.0;
+  static const trueHeight = 5228.0;
+
+  static double getHeightPixel(double unscaledMapPixel, Image asset) {
+    double renderedHeight = asset.height!;
+    double heightScaleRatio = trueHeight / renderedHeight;
+    
+    return unscaledMapPixel / heightScaleRatio;
+  }
+  
+  static double getWidthPixel(double unscaledMapPixel, Image asset) {
+    double renderedWidth = asset.width!;   
+    double widthScaleRatio = trueWidth / renderedWidth;
+
+    return unscaledMapPixel / widthScaleRatio;
+  }
+}
 
 class DevicePixelMapper {
   double devicePixelRatio = WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
