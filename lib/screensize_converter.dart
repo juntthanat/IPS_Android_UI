@@ -2,6 +2,25 @@ import 'dart:developer';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
+class GeoScaledUnifiedMapper {
+  static const geoWidth  = 37.4;
+  static const geoHeight = 73.4;
+
+  static const trueWidth  = 2760.0;
+  static const trueHeight = 5228.0;
+
+  static const widthScale  = trueWidth / geoWidth;
+  static const heightScale = trueHeight / geoHeight;
+
+  static double getWidthPixel(double geoX) {
+    return geoX * widthScale;
+  }
+  
+  static double getHeightPixel(double geoY) {
+    return geoY * heightScale;
+  }
+}
+
 class ImageRatioMapper {
   // TODO: Find a way to use requests or something
   static const trueWidth = 2760.0;
