@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:async';
@@ -152,10 +153,15 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     mqttHandler.connect();
     mqttHandler.setCallback((c) {
       final message = c[0].payload as MqttPublishMessage;
-      final payload =
-      MqttPublishPayload.bytesToStringAsString(message.payload.message);
+      final payload = MqttPublishPayload.bytesToStringAsString(message.payload.message);
 
-      print('Received message:$payload from topic: ${c[0].topic}>');
+      try {
+        final payload_json = json.decode(payload) as Map<String, dynamic>;
+        bluetoothNotifier.setDeviceRssiDiff(payload_json['macAddress'], payload_json['diff']);
+        print('macAddress: ${payload_json['macAddress']}, RSSI: ${payload_json['rssi']}, diff: ${payload_json['diff']}');
+      } catch (e) {
+        return;
+      }
     });
 
     refreshTimer =

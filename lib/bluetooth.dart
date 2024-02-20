@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'package:collection/collection.dart';
 
 import 'package:flutter/material.dart';
@@ -79,6 +80,7 @@ class BluetoothNotifier extends ChangeNotifier {
 
   late StreamSubscription<DiscoveredDevice>? bleDeviceStreamSubscription;
   final _devices = <BLEDevice>[];
+  HashMap<String, int> deviceDiffMap = HashMap();
   BLEDevice nearestDevice = BLEDevice.empty();
   bool scanning = false;
   bool isInitialized = false;
@@ -109,6 +111,13 @@ class BluetoothNotifier extends ChangeNotifier {
     }
     
     // Gets the device with the strongest signal
+    _devices.map((element) {
+        var diff = deviceDiffMap[element._id];
+        if (diff == null) {
+          return;
+        }
+        element._rssi -= diff;
+    });
     _devices.sort((a, b) => a._rssi.compareTo(b._rssi));
     nearestDevice = _devices.last;
     
@@ -119,6 +128,10 @@ class BluetoothNotifier extends ChangeNotifier {
   /// The error handler for the BLE Device Stream subscription
   void bleListenErrorHandler(Object exception) {
     print(exception.toString());
+  }
+
+  void setDeviceRssiDiff(String macAddress, int rssi) {
+    deviceDiffMap[macAddress] = rssi;
   }
   
   /// Sets the callback to the Bluetooth Scanner's status
