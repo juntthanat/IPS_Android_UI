@@ -10,7 +10,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/bluetooth.dart';
+import 'package:flutter_thesis_project/mqtt.dart';
 import 'package:flutter_thesis_project/permissions.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:flutter_thesis_project/screensize_converter.dart';
@@ -120,6 +122,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
   // To Scan Bluetooth: Uncomment this
   var bluetoothNotifier = BluetoothNotifier();
+  var mqttHandler = MQTTConnectionHandler();
 
   @override
   void initState() {
@@ -144,6 +147,16 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     bluetoothNotifier
         .setScannerStatusStreamCallback(onBluetoothStatusChangeHandler);
     bluetoothNotifier.scan();
+
+    mqttHandler.setOnConnected(() => mqttHandler.subscribe("LOLICON/CALIBRATION/METHOD"));
+    mqttHandler.connect();
+    mqttHandler.setCallback((c) {
+      final message = c[0].payload as MqttPublishMessage;
+      final payload =
+      MqttPublishPayload.bytesToStringAsString(message.payload.message);
+
+      print('Received message:$payload from topic: ${c[0].topic}>');
+    });
 
     refreshTimer =
         Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {

@@ -27,14 +27,14 @@ class ImageRatioMapper {
   static const trueHeight = 5228.0;
 
   static double getHeightPixel(double unscaledMapPixel, Image asset) {
-    double renderedHeight = asset.height!;
+    double renderedHeight = asset.height ?? 1;
     double heightScaleRatio = trueHeight / renderedHeight;
     
     return unscaledMapPixel / heightScaleRatio;
   }
   
   static double getWidthPixel(double unscaledMapPixel, Image asset) {
-    double renderedWidth = asset.width!;   
+    double renderedWidth = asset.width ?? 1;   
     double widthScaleRatio = trueWidth / renderedWidth;
 
     return unscaledMapPixel / widthScaleRatio;
