@@ -10,7 +10,7 @@ class MQTTConnectionHandler {
   );
   
   MQTTConnectionHandler() {
-    client.logging(on: true);
+    client.logging(on: false);
     client.keepAlivePeriod = 60;
     
     final connectionMessage = MqttConnectMessage()
