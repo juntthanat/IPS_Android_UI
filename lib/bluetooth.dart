@@ -111,14 +111,15 @@ class BluetoothNotifier extends ChangeNotifier {
     }
     
     // Gets the device with the strongest signal
-    _devices.map((element) {
+    var tList = _devices.map((element) {
         var diff = deviceDiffMap[element._id];
         if (diff == null) {
-          return;
+          return element;
         }
         element._rssi -= diff;
-    });
-    _devices.sort((a, b) => a._rssi.compareTo(b._rssi));
+        return element;
+    }).toList();
+    tList.sort((a, b) => a._rssi.compareTo(b._rssi));
     nearestDevice = _devices.last;
     
     // Notifies all subscribers
