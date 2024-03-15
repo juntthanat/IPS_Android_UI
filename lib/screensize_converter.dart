@@ -23,19 +23,21 @@ class GeoScaledUnifiedMapper {
 
 class ImageRatioMapper {
   // TODO: Find a way to use requests or something
-  static const trueWidth = 2760.0;
-  static const trueHeight = 5228.0;
+  static const mapFloorDimension = [
+    (2758.0, 5121.0),
+    (2760.0, 5228.0)
+  ];
 
-  static double getHeightPixel(double unscaledMapPixel, Image asset) {
+  static double getHeightPixel(double unscaledMapPixel, Image asset, int mapFloorIndex) {
     double renderedHeight = asset.height ?? 1;
-    double heightScaleRatio = trueHeight / renderedHeight;
+    double heightScaleRatio = mapFloorDimension[mapFloorIndex].$2 / renderedHeight;
     
     return unscaledMapPixel / heightScaleRatio;
   }
   
-  static double getWidthPixel(double unscaledMapPixel, Image asset) {
+  static double getWidthPixel(double unscaledMapPixel, Image asset, int mapFloorIndex) {
     double renderedWidth = asset.width ?? 1;   
-    double widthScaleRatio = trueWidth / renderedWidth;
+    double widthScaleRatio = mapFloorDimension[mapFloorIndex].$1 / renderedWidth;
 
     return unscaledMapPixel / widthScaleRatio;
   }
