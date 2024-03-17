@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:async';
@@ -10,7 +11,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/bluetooth.dart';
+import 'package:flutter_thesis_project/mqtt.dart';
 import 'package:flutter_thesis_project/permissions.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:flutter_thesis_project/screensize_converter.dart';
@@ -120,6 +123,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
   // To Scan Bluetooth: Uncomment this
   var bluetoothNotifier = BluetoothNotifier();
+  var mqttHandler = MQTTConnectionHandler();
 
   @override
   void initState() {
@@ -144,6 +148,21 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
     bluetoothNotifier
         .setScannerStatusStreamCallback(onBluetoothStatusChangeHandler);
     bluetoothNotifier.scan();
+
+    mqttHandler.setOnConnected(() => mqttHandler.subscribe("LOLICON/CALIBRATION/METHOD"));
+    mqttHandler.connect();
+    mqttHandler.setCallback((c) {
+      final message = c[0].payload as MqttPublishMessage;
+      final payload = MqttPublishPayload.bytesToStringAsString(message.payload.message);
+
+      try {
+        final payload_json = json.decode(payload) as Map<String, dynamic>;
+        bluetoothNotifier.setDeviceRssiDiff(payload_json['macAddress'], payload_json['diff']);
+        print('macAddress: ${payload_json['macAddress']}, RSSI: ${payload_json['rssi']}, diff: ${payload_json['diff']}');
+      } catch (e) {
+        return;
+      }
+    });
 
     refreshTimer =
         Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {
@@ -177,8 +196,15 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
       currentBeaconInfo = beaconInfo!;
 
       if (!beaconInfo.isEmpty()) {
-        coordinateXValue = currentBeaconInfo.x;
-        coordinateYValue = currentBeaconInfo.y;
+        // TODO: Properly Implement getFloor
+        var unifiedX = GeoScaledUnifiedMapper.getWidthPixel(currentBeaconInfo.x, mapFloorIndex);
+        var unifiedY = GeoScaledUnifiedMapper.getHeightPixel(currentBeaconInfo.y, mapFloorIndex);
+        
+        var scaledUnifiedX = ImageRatioMapper.getWidthPixel(unifiedX, mapFloor[mapFloorIndex], mapFloorIndex);
+        var scaledUnifiedY = ImageRatioMapper.getWidthPixel(unifiedY, mapFloor[mapFloorIndex], mapFloorIndex);
+
+        coordinateXValue = scaledUnifiedX;
+        coordinateYValue = scaledUnifiedY;
       }
     });
   }
@@ -250,106 +276,111 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Container(
-            //   // Header (Compass)
-            //   height: screenConverter
-            //       .getHeightPixel(0.15), // Header (Compass) Height
-            //   width: screenConverter.getWidthPixel(1), // Header (Compass) Width
-            //   color: Colors.grey[900],
-            //   child: Stack(
-            //     children: [
-            //       Column(
-            //         mainAxisAlignment: MainAxisAlignment.start,
-            //         crossAxisAlignment: CrossAxisAlignment.start,
-            //         children: [
-            //           cadrantAngle(context, screenConverter, heading),
-            //         ],
-            //       ),
-            //       Positioned.fill(
-            //         child: Container(
-            //           alignment: Alignment.center,
-            //           height: 100,
-            //           child: Row(
-            //             mainAxisAlignment: MainAxisAlignment.end,
-            //             crossAxisAlignment: CrossAxisAlignment.center,
-            //             // Start (Input X, Input Y, and reset button)
-            //             children: [
-            //               // SizedBox(
-            //               //   width: 100,
-            //               //   child: TextField(
-            //               //     onChanged: (inputX) {
-            //               //       setState(() {
-            //               //         if (inputX == "" || inputX == "-") {
-            //               //           coordinateXValue = 0;
-            //               //         } else if (inputX[0] == "-") {
-            //               //           String nonNegativeString =
-            //               //               inputX.substring(1);
-            //               //           coordinateXValue =
-            //               //               -(double.parse(nonNegativeString));
-            //               //         } else {
-            //               //           coordinateXValue = double.parse(inputX);
-            //               //         }
-            //               //       });
-            //               //     },
-            //               //     keyboardType: TextInputType.number,
-            //               //     decoration: const InputDecoration(
-            //               //       filled: true,
-            //               //       fillColor: Colors.white,
-            //               //       border: OutlineInputBorder(),
-            //               //       labelText: 'offsetX',
-            //               //     ),
-            //               //   ),
-            //               // ),
-            //               // SizedBox(
-            //               //   width: 100,
-            //               //   child: TextField(
-            //               //     onChanged: (inputY) {
-            //               //       setState(() {
-            //               //         if (inputY == "" || inputY == "-") {
-            //               //           coordinateXValue = 0;
-            //               //         } else if (inputY[0] == "-") {
-            //               //           String nonNegativeString =
-            //               //               inputY.substring(1);
-            //               //           coordinateYValue =
-            //               //               -(double.parse(nonNegativeString));
-            //               //         } else {
-            //               //           coordinateYValue = double.parse(inputY);
-            //               //         }
-            //               //       });
-            //               //     },
-            //               //     keyboardType: TextInputType.number,
-            //               //     decoration: const InputDecoration(
-            //               //       filled: true,
-            //               //       fillColor: Colors.white,
-            //               //       border: OutlineInputBorder(),
-            //               //       labelText: 'offsetY',
-            //               //     ),
-            //               //   ),
-            //               // ),
-            //               SizedBox(
-            //                   width: screenConverter.getWidthPixel(0.3),
-            //                   height: screenConverter.getHeightPixel(0.05),
-            //                   child: Container(
-            //                     alignment: Alignment.center,
-            //                     width: screenConverter.getWidthPixel(0.2),
-            //                     height: screenConverter.getHeightPixel(0.05),
-            //                     child: FloatingActionButton.extended(
-            //                       onPressed: () {
-            //                         mapAnimationResetInitialize();
-            //                       },
-            //                       label: const Text("Reset"),
-            //                     ),
-            //                   ))
-            //             ],
-            //             // End (Input X, Input Y, and Reset Button)
-            //           ),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
+            Container(
+              // Header (Compass)
+              height: screenConverter
+                  .getHeightPixel(0.15), // Header (Compass) Height
+              width: screenConverter.getWidthPixel(1), // Header (Compass) Width
+              color: Colors.grey[900],
+              child: Stack(
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // cadrantAngle(context, screenConverter, heading),
+                      Text(
+                        "(X: $coordinateXValue, Y: $coordinateYValue)",
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  Positioned.fill(
+                    child: Container(
+                      alignment: Alignment.center,
+                      height: 100,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        // Start (Input X, Input Y, and reset button)
+                        children: [
+                          SizedBox(
+                            width: 100,
+                            child: TextField(
+                              onChanged: (inputX) {
+                                setState(() {
+                                  if (inputX == "" || inputX == "-") {
+                                    coordinateXValue = 0;
+                                  } else if (inputX[0] == "-") {
+                                    String nonNegativeString =
+                                        inputX.substring(1);
+                                    coordinateXValue =
+                                        -(double.parse(nonNegativeString));
+                                  } else {
+                                    coordinateXValue = double.parse(inputX);
+                                  }
+                                });
+                              },
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(),
+                                labelText: 'offsetX',
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 100,
+                            child: TextField(
+                              onChanged: (inputY) {
+                                setState(() {
+                                  if (inputY == "" || inputY == "-") {
+                                    coordinateXValue = 0;
+                                  } else if (inputY[0] == "-") {
+                                    String nonNegativeString =
+                                        inputY.substring(1);
+                                    coordinateYValue =
+                                        -(double.parse(nonNegativeString));
+                                  } else {
+                                    coordinateYValue = double.parse(inputY);
+                                  }
+                                });
+                              },
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(),
+                                labelText: 'offsetY',
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                              width: screenConverter.getWidthPixel(0.3),
+                              height: screenConverter.getHeightPixel(0.05),
+                              child: Container(
+                                alignment: Alignment.center,
+                                width: screenConverter.getWidthPixel(0.2),
+                                height: screenConverter.getHeightPixel(0.05),
+                                child: FloatingActionButton.extended(
+                                  onPressed: () {
+                                    mapAnimationResetInitialize();
+                                  },
+                                  label: const Text("Reset"),
+                                ),
+                              )
+                            )
+                        ],
+                        // End (Input X, Input Y, and Reset Button)
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             SizedBox(
-              height: screenConverter.getHeightPixel(0.9),
+              height: screenConverter.getHeightPixel(0.75),
               child: mainMap(
                   context,
                   mapTransformationController,
@@ -360,7 +391,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                   mapFloor,
                   mapFloorIndex,
                   screenConverter,
-                  currentBeaconInfo),
+                ),
             )
           ],
         ),
@@ -478,7 +509,7 @@ InteractiveViewer mainMap(
     mapFloor,
     mapFloorIndex,
     screenConverter,
-    currentBeaconInfo) {
+  ) {
   return InteractiveViewer(
     transformationController: mapTransformationController,
     minScale: 0.1,
@@ -497,24 +528,35 @@ InteractiveViewer mainMap(
               Center(
                 child: Transform.translate(
                   offset: Offset(
-                    screenConverter.getHeightPixel(coordinateXValue),
-                    screenConverter.getWidthPixel(coordinateYValue),
+/*                     screenConverter.getHeightPixel(coordinateXValue),
+                    screenConverter.getWidthPixel(coordinateYValue), */
+                    // devicePixelMapper.getConvertedPixel(coordinateXValue),
+                    // devicePixelMapper.getConvertedPixel(coordinateYValue),
+                    ImageRatioMapper.getWidthPixel(coordinateXValue * -1, mapFloor[mapFloorIndex], mapFloorIndex),
+                    ImageRatioMapper.getHeightPixel(coordinateYValue, mapFloor[mapFloorIndex], mapFloorIndex) - 20,
                   ),
                   child: mapFloor[mapFloorIndex],
                 ),
               ),
               Visibility(
-                visible: mapFloorIndex == 0 && currentBeaconInfo.getFloor() == 7 || mapFloorIndex == 1 && currentBeaconInfo.getFloor() == 8,
+                // TODO: REVERT
+                // visible: mapFloorIndex == 0 && currentBeaconInfo.getFloor() == 7 || mapFloorIndex == 1 && currentBeaconInfo.getFloor() == 8,
+                visible: true,
                 child: SizedBox(
                   height: screenConverter.getHeightPixel(0.75),
                   width: screenConverter.getWidthPixel(1.0),
                   child: Center(
                     child: Container(
-                      height: 24,
-                      width: 24,
+                      // TODO: REVERT
+                      /* height: 24,
+                      width: 24, */
+                      height: 10,
+                      width: 10,
                       decoration: const BoxDecoration(
                         color: Colors.orange,
-                        shape: BoxShape.circle,
+                        shape: BoxShape.rectangle,
+                        // TODO: REVERT
+                        // shape: BoxShape.circle,
                       ),
                     ),
                   ),
