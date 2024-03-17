@@ -384,8 +384,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                   mapFloor,
                   mapFloorIndex,
                   screenConverter,
-                  DevicePixelMapper(),
-                  currentBeaconInfo),
+                ),
             )
           ],
         ),
@@ -503,8 +502,7 @@ InteractiveViewer mainMap(
     mapFloor,
     mapFloorIndex,
     screenConverter,
-    devicePixelMapper,
-    currentBeaconInfo) {
+  ) {
   return InteractiveViewer(
     transformationController: mapTransformationController,
     minScale: 0.1,
