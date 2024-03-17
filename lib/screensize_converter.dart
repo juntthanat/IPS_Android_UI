@@ -2,21 +2,28 @@ import 'dart:developer';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
+class MapDimensions {
+  final double geoWidth;
+  final double geoHeight;
+  final double trueWidth;
+  final double trueHeight;
+
+  const MapDimensions(this.geoWidth, this.geoHeight, this.trueWidth, this.trueHeight); 
+}
+
 class GeoScaledUnifiedMapper {
-  static const geoWidth  = 37.4;
-  static const geoHeight = 73.4;
+  static const map_dimensions = [
+    MapDimensions(39.6, 73.6, 2758.0, 5121.0),
+    MapDimensions(37.4, 73.4, 2760.0, 5228.0), // 8th floor
+  ];
 
-  static const trueWidth  = 2760.0;
-  static const trueHeight = 5228.0;
-
-  static const widthScale  = trueWidth / geoWidth;
-  static const heightScale = trueHeight / geoHeight;
-
-  static double getWidthPixel(double geoX) {
+  static double getWidthPixel(double geoX, int mapFloorIndex) {
+    var widthScale = map_dimensions[mapFloorIndex].trueWidth / map_dimensions[mapFloorIndex].geoWidth;
     return geoX * widthScale;
   }
   
-  static double getHeightPixel(double geoY) {
+  static double getHeightPixel(double geoY, int mapFloorIndex) {
+    var heightScale = map_dimensions[mapFloorIndex].trueHeight / map_dimensions[mapFloorIndex].geoHeight;
     return geoY * heightScale;
   }
 }

@@ -196,8 +196,15 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
       currentBeaconInfo = beaconInfo!;
 
       if (!beaconInfo.isEmpty()) {
-        coordinateXValue = currentBeaconInfo.x;
-        coordinateYValue = currentBeaconInfo.y;
+        // TODO: Properly Implement getFloor
+        var unifiedX = GeoScaledUnifiedMapper.getWidthPixel(currentBeaconInfo.x, mapFloorIndex);
+        var unifiedY = GeoScaledUnifiedMapper.getHeightPixel(currentBeaconInfo.y, mapFloorIndex);
+        
+        var scaledUnifiedX = ImageRatioMapper.getWidthPixel(unifiedX, mapFloor[mapFloorIndex], mapFloorIndex);
+        var scaledUnifiedY = ImageRatioMapper.getWidthPixel(unifiedY, mapFloor[mapFloorIndex], mapFloorIndex);
+
+        coordinateXValue = scaledUnifiedX;
+        coordinateYValue = scaledUnifiedY;
       }
     });
   }

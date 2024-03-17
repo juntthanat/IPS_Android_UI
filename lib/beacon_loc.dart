@@ -40,7 +40,9 @@ class Beacon {
   }
   
   int getFloor() {
-    if (floorName.contains("ECC8") || floorName == "8") {
+    if (floorName.contains("ECC7") || floorName == "7") {
+      return 7;
+    } else if (floorName.contains("ECC8") || floorName == "8") {
       return 8;
     } else if (floorName.contains("ECC9") || floorName == "9") {
       return 9;
