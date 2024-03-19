@@ -95,12 +95,13 @@ class InteractiveMapState extends State<InteractiveMap> with TickerProviderState
                   mapFloorIndex: widget.mapFloorIndex,
                 ),
                 UserPositionPin(mapFloorIndex: widget.mapFloorIndex, currentFloor: widget.currentBeaconInfo.getFloor(),),
-                Transform.translate(
-                  offset: Offset(
-                      ImageRatioMapper.getWidthPixel((widget.coordinateXValue * -1) + 100, widget.mapFloor[widget.mapFloorIndex], widget.mapFloorIndex),
-                      ImageRatioMapper.getHeightPixel(widget.coordinateYValue + (100 * -1), widget.mapFloor[widget.mapFloorIndex], widget.mapFloorIndex) 
-                  ),
-                  child: BeaconPin(),
+                BeaconPin(
+                  pinX: 100,
+                  pinY: 100,
+                  coordinateXValue: widget.coordinateXValue,
+                  coordinateYValue: widget.coordinateYValue,
+                  mapFloor: widget.mapFloor,
+                  mapFloorIndex: widget.mapFloorIndex
                 ),
               ],
             ),
@@ -180,23 +181,41 @@ class UserPositionPin extends StatelessWidget {
 
 class BeaconPin extends StatelessWidget {
   final ScreenSizeConverter screenConverter = ScreenSizeConverter();
+  final ImageRatioMapper imageRatioMapper = ImageRatioMapper();
+
+  final double coordinateXValue, coordinateYValue;
+  final double pinX, pinY;
+  final List<Image> mapFloor;
+  final int mapFloorIndex;
 
   BeaconPin({
     super.key,
+    required this.pinX,
+    required this.pinY,
+    required this.coordinateXValue,
+    required this.coordinateYValue,
+    required this.mapFloor,
+    required this.mapFloorIndex,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: screenConverter.getHeightPixel(0.75),
-      width: screenConverter.getWidthPixel(1.0),
-      child: Center(
-        child: Container(
-          height: 10,
-          width: 10,
-          decoration: const BoxDecoration(
-            color: Colors.red,
-            shape: BoxShape.rectangle,
+    var dx = ImageRatioMapper.getWidthPixel((coordinateXValue * -1) + pinX, mapFloor[mapFloorIndex], mapFloorIndex);
+    var dy = ImageRatioMapper.getHeightPixel(coordinateYValue + (pinY * -1), mapFloor[mapFloorIndex], mapFloorIndex);
+
+    return Transform.translate(
+      offset: Offset(dx, dy),
+      child: SizedBox(
+        height: screenConverter.getHeightPixel(0.75),
+        width: screenConverter.getWidthPixel(1.0),
+        child: Center(
+          child: Container(
+            height: 10,
+            width: 10,
+            decoration: const BoxDecoration(
+              color: Colors.red,
+              shape: BoxShape.rectangle,
+            ),
           ),
         ),
       ),
