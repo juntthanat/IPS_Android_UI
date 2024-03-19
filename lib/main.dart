@@ -525,43 +525,14 @@ InteractiveViewer mainMap(
           angle: 0,
           child: Stack(
             children: [
-              Center(
-                child: Transform.translate(
-                  offset: Offset(
-/*                     screenConverter.getHeightPixel(coordinateXValue),
-                    screenConverter.getWidthPixel(coordinateYValue), */
-                    // devicePixelMapper.getConvertedPixel(coordinateXValue),
-                    // devicePixelMapper.getConvertedPixel(coordinateYValue),
-                    ImageRatioMapper.getWidthPixel(coordinateXValue * -1, mapFloor[mapFloorIndex], mapFloorIndex),
-                    ImageRatioMapper.getHeightPixel(coordinateYValue, mapFloor[mapFloorIndex], mapFloorIndex) - 20,
-                  ),
-                  child: mapFloor[mapFloorIndex],
-                ),
+              MapImage(
+                coordinateXValue: coordinateXValue,
+                coordinateYValue: coordinateYValue,
+                mapFloor: mapFloor, 
+                mapFloorIndex: mapFloorIndex,
               ),
-              Visibility(
-                // TODO: REVERT
-                // visible: mapFloorIndex == 0 && currentBeaconInfo.getFloor() == 7 || mapFloorIndex == 1 && currentBeaconInfo.getFloor() == 8,
-                visible: true,
-                child: SizedBox(
-                  height: screenConverter.getHeightPixel(0.75),
-                  width: screenConverter.getWidthPixel(1.0),
-                  child: Center(
-                    child: Container(
-                      // TODO: REVERT
-                      /* height: 24,
-                      width: 24, */
-                      height: 10,
-                      width: 10,
-                      decoration: const BoxDecoration(
-                        color: Colors.orange,
-                        shape: BoxShape.rectangle,
-                        // TODO: REVERT
-                        // shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              // TODO: UNCOMMENT THIS
+              // UserPositionPin(mapFloorIndex: mapFloorIndex, currentFloor: currentBeaconInfo.getFloor(),),
               Transform.translate(
                 offset: Offset(
                     ImageRatioMapper.getWidthPixel((coordinateXValue * -1) + 100, mapFloor[mapFloorIndex], mapFloorIndex),
@@ -575,6 +546,73 @@ InteractiveViewer mainMap(
       ],
     ),
   );
+}
+
+class MapImage extends StatelessWidget {
+  final double coordinateXValue, coordinateYValue;
+  final List<Image> mapFloor;
+  final int mapFloorIndex;
+
+  const MapImage({
+    super.key,
+    required this.coordinateXValue,
+    required this.coordinateYValue,
+    required this.mapFloor,
+    required this.mapFloorIndex,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Transform.translate(
+        offset: Offset(
+          ImageRatioMapper.getWidthPixel(coordinateXValue * -1, mapFloor[mapFloorIndex], mapFloorIndex),
+          ImageRatioMapper.getHeightPixel(coordinateYValue, mapFloor[mapFloorIndex], mapFloorIndex) - 20,
+        ),
+        child: mapFloor[mapFloorIndex],
+      ),
+    );
+  }
+}
+
+class UserPositionPin extends StatelessWidget {
+  final ScreenSizeConverter screenConverter = ScreenSizeConverter();
+  final int mapFloorIndex;
+  final int currentFloor;
+
+  UserPositionPin({
+    super.key,
+    required this.mapFloorIndex,
+    required this.currentFloor
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Visibility(
+      // TODO: REVERT
+      // visible: mapFloorIndex == 0 && currentFloor == 7 || mapFloorIndex == 1 && currentFloor == 8,
+      visible: true,
+      child: SizedBox(
+        height: screenConverter.getHeightPixel(0.75),
+        width: screenConverter.getWidthPixel(1.0),
+        child: Center(
+          child: Container(
+            // TODO: REVERT
+            /* height: 24,
+            width: 24, */
+            height: 10,
+            width: 10,
+            decoration: const BoxDecoration(
+              color: Colors.orange,
+              shape: BoxShape.rectangle,
+              // TODO: REVERT
+              // shape: BoxShape.circle,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class BeaconPin extends StatelessWidget {
