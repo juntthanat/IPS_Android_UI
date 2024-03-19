@@ -562,10 +562,43 @@ InteractiveViewer mainMap(
                   ),
                 ),
               ),
+              Transform.translate(
+                offset: Offset(
+                    ImageRatioMapper.getWidthPixel((coordinateXValue * -1) + 100, mapFloor[mapFloorIndex], mapFloorIndex),
+                    ImageRatioMapper.getHeightPixel(coordinateYValue + (100 * -1), mapFloor[mapFloorIndex], mapFloorIndex) 
+                ),
+                child: BeaconPin(),
+              ),
             ],
           ),
         ),
       ],
     ),
   );
+}
+
+class BeaconPin extends StatelessWidget {
+  final ScreenSizeConverter screenConverter = ScreenSizeConverter();
+
+  BeaconPin({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: screenConverter.getHeightPixel(0.75),
+      width: screenConverter.getWidthPixel(1.0),
+      child: Center(
+        child: Container(
+          height: 10,
+          width: 10,
+          decoration: const BoxDecoration(
+            color: Colors.red,
+            shape: BoxShape.rectangle,
+          ),
+        ),
+      ),
+    );
+  }
 }
