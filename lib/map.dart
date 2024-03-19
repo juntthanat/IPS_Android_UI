@@ -67,7 +67,6 @@ class InteractiveMapState extends State<InteractiveMap> with TickerProviderState
 
   @override
   void dispose() {
-    // TODO: implement dispose
     mapControllerReset.dispose();
     super.dispose();
   }
@@ -95,7 +94,6 @@ class InteractiveMapState extends State<InteractiveMap> with TickerProviderState
                   mapFloor: widget.mapFloor, 
                   mapFloorIndex: widget.mapFloorIndex,
                 ),
-                // TODO: UNCOMMENT THIS
                 UserPositionPin(mapFloorIndex: widget.mapFloorIndex, currentFloor: widget.currentBeaconInfo.getFloor(),),
                 Transform.translate(
                   offset: Offset(
