@@ -47,17 +47,12 @@ class MainPage extends StatefulWidget {
   MainBody createState() => MainBody();
 }
 
-class MainBody extends State<MainPage> with TickerProviderStateMixin {
+class MainBody extends State<MainPage> {
   double? heading = 0;
   double coordinateXValue = 0;
   double coordinateYValue = 0;
 
   static var screenConverter = ScreenSizeConverter();
-
-  final TransformationController mapTransformationController =
-      TransformationController();
-  Animation<Matrix4>? mapAnimationReset;
-  late final AnimationController mapControllerReset;
 
   static List<Image> mapFloor = <Image>[
     Image.asset(
@@ -80,44 +75,12 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   Beacon currentBeaconInfo = Beacon.empty();
   HashMap<String, Beacon> beaconMap = HashMap();
 
-  void onMapAnimationReset() {
-    mapTransformationController.value = mapAnimationReset!.value;
-    if (!mapControllerReset.isAnimating) {
-      mapAnimationReset!.removeListener(onMapAnimationReset);
-      mapAnimationReset = null;
-      mapControllerReset.reset();
-    }
-  }
-
-  void mapAnimationResetInitialize() {
-    mapControllerReset.reset();
-    mapAnimationReset = Matrix4Tween(
-      begin: mapTransformationController.value,
-      end: Matrix4.identity(),
-    ).animate(mapControllerReset);
-    mapAnimationReset!.addListener(onMapAnimationReset);
-    mapControllerReset.forward();
-  }
-
-  // Stop the reset to inital position transform animation.
-  void mapAnimateResetStop() {
-    mapControllerReset.stop();
-    mapAnimationReset?.removeListener(onMapAnimationReset);
-    mapAnimationReset = null;
-    mapControllerReset.reset();
-  }
-
-  // If user translate during the initial position transform animation, the animation cancel and follow the user.
-  void _onInteractionStart(ScaleStartDetails details) {
-    if (mapControllerReset.status == AnimationStatus.forward) {
-      mapAnimateResetStop();
-    }
-  }
+  GlobalKey<_InteractiveMapState> _key = GlobalKey();
+  late InteractiveMap interactiveMap;  
 
   @override
   void dispose() {
     refreshTimer?.cancel();
-    mapControllerReset.dispose();
     super.dispose();
   }
 
@@ -129,6 +92,15 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     initPermissionRequest();
+    
+    interactiveMap = InteractiveMap(
+      key: _key,
+      coordinateXValue: coordinateXValue,
+      coordinateYValue: coordinateYValue,
+      mapFloor: mapFloor,
+      mapFloorIndex: mapFloorIndex,
+      currentBeaconInfo: currentBeaconInfo,
+    );
 
     // Init Compass heading
     FlutterCompass.events!.listen((event) {
@@ -136,11 +108,6 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
         heading = event.heading;
       });
     });
-
-    mapControllerReset = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
 
     // Does a simple bluetooth scan and prints the result to the console.
     // To actually get the data from this, please check out how to use flutter's ChangeNotifier
@@ -262,6 +229,14 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    interactiveMap = InteractiveMap(
+      key: _key,
+      coordinateXValue: coordinateXValue,
+      coordinateYValue: coordinateYValue,
+      mapFloor: mapFloor,
+      mapFloorIndex: mapFloorIndex,
+      currentBeaconInfo: currentBeaconInfo,
+    );
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: screenConverter
@@ -365,7 +340,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                                 height: screenConverter.getHeightPixel(0.05),
                                 child: FloatingActionButton.extended(
                                   onPressed: () {
-                                    mapAnimationResetInitialize();
+                                    // TODO: Proper Implementation
+                                    _key.currentState!.mapAnimationResetInitialize();
                                   },
                                   label: const Text("Reset"),
                                 ),
@@ -381,17 +357,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
             ),
             SizedBox(
               height: screenConverter.getHeightPixel(0.75),
-              child: mainMap(
-                  context,
-                  mapTransformationController,
-                  _onInteractionStart,
-                  heading,
-                  coordinateXValue,
-                  coordinateYValue,
-                  mapFloor,
-                  mapFloorIndex,
-                  screenConverter,
-                ),
+              child: interactiveMap,
             )
           ],
         ),
@@ -499,53 +465,115 @@ Column cadrantAngle(BuildContext context, screenConverter, heading) {
   );
 }
 
-InteractiveViewer mainMap(
-    BuildContext context,
-    mapTransformationController,
-    onInteractionStart,
-    heading,
-    coordinateXValue,
-    coordinateYValue,
-    mapFloor,
-    mapFloorIndex,
-    screenConverter,
-  ) {
-  return InteractiveViewer(
-    transformationController: mapTransformationController,
-    minScale: 0.1,
-    maxScale: 2.0,
-    onInteractionStart: onInteractionStart,
-    boundaryMargin: const EdgeInsets.all(double.infinity),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Transform.rotate(
-          //angle: ((heading ?? 0) * (pi / 180) * -1),
-          angle: 0,
-          child: Stack(
-            children: [
-              MapImage(
-                coordinateXValue: coordinateXValue,
-                coordinateYValue: coordinateYValue,
-                mapFloor: mapFloor, 
-                mapFloorIndex: mapFloorIndex,
-              ),
-              // TODO: UNCOMMENT THIS
-              // UserPositionPin(mapFloorIndex: mapFloorIndex, currentFloor: currentBeaconInfo.getFloor(),),
-              Transform.translate(
-                offset: Offset(
-                    ImageRatioMapper.getWidthPixel((coordinateXValue * -1) + 100, mapFloor[mapFloorIndex], mapFloorIndex),
-                    ImageRatioMapper.getHeightPixel(coordinateYValue + (100 * -1), mapFloor[mapFloorIndex], mapFloorIndex) 
-                ),
-                child: BeaconPin(),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
+class InteractiveMap extends StatefulWidget {
+  final double coordinateXValue, coordinateYValue;
+  final Beacon currentBeaconInfo;
+  final List<Image> mapFloor;
+  final int mapFloorIndex;
+
+  const InteractiveMap({
+    required Key key,
+    required this.coordinateXValue,
+    required this.coordinateYValue,
+    required this.mapFloor,
+    required this.mapFloorIndex,
+    required this.currentBeaconInfo,
+  }) : super(key: key);
+  
+  @override
+  State<InteractiveMap> createState() => _InteractiveMapState();
+}
+
+class _InteractiveMapState extends State<InteractiveMap> with TickerProviderStateMixin {
+  final TransformationController mapTransformationController = TransformationController();
+
+  Animation<Matrix4>? mapAnimationReset;
+
+  late final AnimationController mapControllerReset = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 400),
   );
+
+  void onMapAnimationReset() {
+    mapTransformationController.value = mapAnimationReset!.value;
+    if (!mapControllerReset.isAnimating) {
+      mapAnimationReset!.removeListener(onMapAnimationReset);
+      mapAnimationReset = null;
+      mapControllerReset.reset();
+    }
+  }
+
+  void mapAnimationResetInitialize() {
+    mapControllerReset.reset();
+    mapAnimationReset = Matrix4Tween(
+      begin: mapTransformationController.value,
+      end: Matrix4.identity(),
+    ).animate(mapControllerReset);
+    mapAnimationReset!.addListener(onMapAnimationReset);
+    mapControllerReset.forward();
+  }
+
+  // Stop the reset to inital position transform animation.
+  void mapAnimateResetStop() {
+    mapControllerReset.stop();
+    mapAnimationReset?.removeListener(onMapAnimationReset);
+    mapAnimationReset = null;
+    mapControllerReset.reset();
+  }
+
+  // If user translate during the initial position transform animation, the animation cancel and follow the user.
+  void onInteractionStart(ScaleStartDetails details) {
+    if (mapControllerReset.status == AnimationStatus.forward) {
+      mapAnimateResetStop();
+    }
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    mapControllerReset.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InteractiveViewer(
+      transformationController: mapTransformationController,
+      minScale: 0.1,
+      maxScale: 2.0,
+      onInteractionStart: onInteractionStart,
+      boundaryMargin: const EdgeInsets.all(double.infinity),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Transform.rotate(
+            //angle: ((heading ?? 0) * (pi / 180) * -1),
+            angle: 0,
+            child: Stack(
+              children: [
+                MapImage(
+                  coordinateXValue: widget.coordinateXValue,
+                  coordinateYValue: widget.coordinateYValue,
+                  mapFloor: widget.mapFloor, 
+                  mapFloorIndex: widget.mapFloorIndex,
+                ),
+                // TODO: UNCOMMENT THIS
+                UserPositionPin(mapFloorIndex: widget.mapFloorIndex, currentFloor: widget.currentBeaconInfo.getFloor(),),
+                Transform.translate(
+                  offset: Offset(
+                      ImageRatioMapper.getWidthPixel((widget.coordinateXValue * -1) + 100, widget.mapFloor[widget.mapFloorIndex], widget.mapFloorIndex),
+                      ImageRatioMapper.getHeightPixel(widget.coordinateYValue + (100 * -1), widget.mapFloor[widget.mapFloorIndex], widget.mapFloorIndex) 
+                  ),
+                  child: BeaconPin(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class MapImage extends StatelessWidget {
