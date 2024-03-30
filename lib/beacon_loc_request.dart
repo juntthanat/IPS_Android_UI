@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:flutter_thesis_project/beacon_loc.dart';
+import 'package:flutter_thesis_project/screensize_converter.dart';
 import 'package:http/http.dart' as http;
 
 class GeoBeacon {
@@ -10,6 +13,41 @@ class GeoBeacon {
   final String macAddress;
 
   GeoBeacon({required this.id, required this.name, required this.geoX, required this.geoY, required this.macAddress});
+}
+
+class GeoBeaconList {
+  final List<GeoBeacon> geoBeaconList;
+
+  GeoBeaconList({required this.geoBeaconList});
+
+  factory GeoBeaconList.fromJson(List<dynamic> jsonList) {
+    List<GeoBeacon> tempGeoBeaconList = List.empty(growable: true);
+
+    jsonList.forEach((element) {
+      var tempGeoBeacon = GeoBeacon(id: element["beaconId"], name: element["name"], geoX: element["geoX"], geoY: element["geoY"], macAddress: element["macAddress"]);
+      tempGeoBeaconList.add(tempGeoBeacon);
+    });
+
+    return GeoBeaconList(geoBeaconList: tempGeoBeaconList);
+  }
+  
+  List<Beacon> getBeacons(int mapFloorIndex) {
+    List<Beacon> result = List.empty(growable: true);
+
+    geoBeaconList.forEach((element) {
+      var tempBeacon = Beacon(
+        id: element.id,
+        x: GeoScaledUnifiedMapper.getWidthPixel(element.geoX, mapFloorIndex),
+        y: GeoScaledUnifiedMapper.getHeightPixel(element.geoY, mapFloorIndex),
+        name: element.name,
+        macAddress: element.macAddress
+      );
+      
+      result.add(tempBeacon);
+    });
+
+    return result;
+  }
 }
 
 class FloorBeacon {
@@ -28,12 +66,12 @@ class FloorBeaconList {
   factory FloorBeaconList.fromJson(List<dynamic> jsonList) {
     List<FloorBeacon> tempFloorBeaconList = List.empty(growable: true);
     jsonList.forEach((element) {
-	var tempFloorBeacon = FloorBeacon(
-	    floorBeaconId: element["floorBeaconId"],
-	    floorId: element["floorId"],
-	    beaconId: element["beaconId"],
-	);
-	tempFloorBeaconList.add(tempFloorBeacon);
+      var tempFloorBeacon = FloorBeacon(
+          floorBeaconId: element["floorBeaconId"],
+          floorId: element["floorId"],
+          beaconId: element["beaconId"],
+      );
+      tempFloorBeaconList.add(tempFloorBeacon);
     });
     return FloorBeaconList(beaconList: tempFloorBeaconList);
   }
@@ -61,4 +99,30 @@ Future<FloorBeaconList> fetchAllBeaconsByFloor(int mapFloorNumber) async {
   }
   
   return FloorBeaconList.empty();
+}
+
+Future<List<Beacon>> fetchGeoBeaconListFromIdList(List<int> idList, int mapFloorIndex) async {
+  const base_uri = 'http://159.223.40.229:8080/api/v1/beacons/beacon-id-list';
+  final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+  Map<String, List<int>> http_param = { "beaconIdList": idList };
+
+  try {
+    var uri = Uri.parse(base_uri);
+    final response = await http.post(uri, headers: headers, body: json.encode(http_param));
+    //print(response.body);
+  
+    if (response.statusCode == 200) {
+	var geoBeaconList = GeoBeaconList.fromJson(jsonDecode(response.body));
+        
+       // TODO: PUT IN PROPER MAP FLOOR INDEX
+       return geoBeaconList.getBeacons(mapFloorIndex);
+    } else {
+      //throw Exception("Failed to fetch Location of said beacon");
+    }
+  } on Exception catch(e) {
+    print("Failed to make get request");
+    print(e);
+  }
+  
+  return List.empty();
 }
