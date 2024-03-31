@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/bluetooth.dart';
+import 'package:flutter_thesis_project/map.dart';
 import 'package:flutter_thesis_project/mqtt.dart';
 import 'package:flutter_thesis_project/permissions.dart';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -47,17 +48,12 @@ class MainPage extends StatefulWidget {
   MainBody createState() => MainBody();
 }
 
-class MainBody extends State<MainPage> with TickerProviderStateMixin {
+class MainBody extends State<MainPage> {
   double? heading = 0;
   double coordinateXValue = 0;
   double coordinateYValue = 0;
 
   static var screenConverter = ScreenSizeConverter();
-
-  final TransformationController mapTransformationController =
-      TransformationController();
-  Animation<Matrix4>? mapAnimationReset;
-  late final AnimationController mapControllerReset;
 
   static List<Image> mapFloor = <Image>[
     Image.asset(
@@ -79,45 +75,14 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
   Beacon currentBeaconInfo = Beacon.empty();
   HashMap<String, Beacon> beaconMap = HashMap();
+  List<Beacon> beaconsToRender = List.empty(growable: true);
 
-  void onMapAnimationReset() {
-    mapTransformationController.value = mapAnimationReset!.value;
-    if (!mapControllerReset.isAnimating) {
-      mapAnimationReset!.removeListener(onMapAnimationReset);
-      mapAnimationReset = null;
-      mapControllerReset.reset();
-    }
-  }
-
-  void mapAnimationResetInitialize() {
-    mapControllerReset.reset();
-    mapAnimationReset = Matrix4Tween(
-      begin: mapTransformationController.value,
-      end: Matrix4.identity(),
-    ).animate(mapControllerReset);
-    mapAnimationReset!.addListener(onMapAnimationReset);
-    mapControllerReset.forward();
-  }
-
-  // Stop the reset to inital position transform animation.
-  void mapAnimateResetStop() {
-    mapControllerReset.stop();
-    mapAnimationReset?.removeListener(onMapAnimationReset);
-    mapAnimationReset = null;
-    mapControllerReset.reset();
-  }
-
-  // If user translate during the initial position transform animation, the animation cancel and follow the user.
-  void _onInteractionStart(ScaleStartDetails details) {
-    if (mapControllerReset.status == AnimationStatus.forward) {
-      mapAnimateResetStop();
-    }
-  }
+  final GlobalKey<InteractiveMapState> _key = GlobalKey();
+  late InteractiveMap interactiveMap;  
 
   @override
   void dispose() {
     refreshTimer?.cancel();
-    mapControllerReset.dispose();
     super.dispose();
   }
 
@@ -129,6 +94,16 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     initPermissionRequest();
+    
+    interactiveMap = InteractiveMap(
+      key: _key,
+      coordinateXValue: coordinateXValue,
+      coordinateYValue: coordinateYValue,
+      mapFloor: mapFloor,
+      mapFloorIndex: mapFloorIndex,
+      currentBeaconInfo: currentBeaconInfo,
+      beaconsToRender: beaconsToRender,
+    );
 
     // Init Compass heading
     FlutterCompass.events!.listen((event) {
@@ -136,11 +111,6 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
         heading = event.heading;
       });
     });
-
-    mapControllerReset = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
 
     // Does a simple bluetooth scan and prints the result to the console.
     // To actually get the data from this, please check out how to use flutter's ChangeNotifier
@@ -262,6 +232,15 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    interactiveMap = InteractiveMap(
+      key: _key,
+      coordinateXValue: coordinateXValue,
+      coordinateYValue: coordinateYValue,
+      mapFloor: mapFloor,
+      mapFloorIndex: mapFloorIndex,
+      currentBeaconInfo: currentBeaconInfo,
+      beaconsToRender: beaconsToRender,
+    );
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: screenConverter
@@ -365,7 +344,8 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
                                 height: screenConverter.getHeightPixel(0.05),
                                 child: FloatingActionButton.extended(
                                   onPressed: () {
-                                    mapAnimationResetInitialize();
+                                    // TODO: Proper Implementation
+                                    _key.currentState!.mapAnimationResetInitialize();
                                   },
                                   label: const Text("Reset"),
                                 ),
@@ -381,17 +361,7 @@ class MainBody extends State<MainPage> with TickerProviderStateMixin {
             ),
             SizedBox(
               height: screenConverter.getHeightPixel(0.75),
-              child: mainMap(
-                  context,
-                  mapTransformationController,
-                  _onInteractionStart,
-                  heading,
-                  coordinateXValue,
-                  coordinateYValue,
-                  mapFloor,
-                  mapFloorIndex,
-                  screenConverter,
-                ),
+              child: interactiveMap,
             )
           ],
         ),
@@ -499,73 +469,3 @@ Column cadrantAngle(BuildContext context, screenConverter, heading) {
   );
 }
 
-InteractiveViewer mainMap(
-    BuildContext context,
-    mapTransformationController,
-    onInteractionStart,
-    heading,
-    coordinateXValue,
-    coordinateYValue,
-    mapFloor,
-    mapFloorIndex,
-    screenConverter,
-  ) {
-  return InteractiveViewer(
-    transformationController: mapTransformationController,
-    minScale: 0.1,
-    maxScale: 2.0,
-    onInteractionStart: onInteractionStart,
-    boundaryMargin: const EdgeInsets.all(double.infinity),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Transform.rotate(
-          //angle: ((heading ?? 0) * (pi / 180) * -1),
-          angle: 0,
-          child: Stack(
-            children: [
-              Center(
-                child: Transform.translate(
-                  offset: Offset(
-/*                     screenConverter.getHeightPixel(coordinateXValue),
-                    screenConverter.getWidthPixel(coordinateYValue), */
-                    // devicePixelMapper.getConvertedPixel(coordinateXValue),
-                    // devicePixelMapper.getConvertedPixel(coordinateYValue),
-                    ImageRatioMapper.getWidthPixel(coordinateXValue * -1, mapFloor[mapFloorIndex], mapFloorIndex),
-                    ImageRatioMapper.getHeightPixel(coordinateYValue, mapFloor[mapFloorIndex], mapFloorIndex) - 20,
-                  ),
-                  child: mapFloor[mapFloorIndex],
-                ),
-              ),
-              Visibility(
-                // TODO: REVERT
-                // visible: mapFloorIndex == 0 && currentBeaconInfo.getFloor() == 7 || mapFloorIndex == 1 && currentBeaconInfo.getFloor() == 8,
-                visible: true,
-                child: SizedBox(
-                  height: screenConverter.getHeightPixel(0.75),
-                  width: screenConverter.getWidthPixel(1.0),
-                  child: Center(
-                    child: Container(
-                      // TODO: REVERT
-                      /* height: 24,
-                      width: 24, */
-                      height: 10,
-                      width: 10,
-                      decoration: const BoxDecoration(
-                        color: Colors.orange,
-                        shape: BoxShape.rectangle,
-                        // TODO: REVERT
-                        // shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
