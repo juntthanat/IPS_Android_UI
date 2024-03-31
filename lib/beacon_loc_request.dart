@@ -92,7 +92,7 @@ Future<FloorBeaconList> fetchAllFloorBeaconsByFloor(int mapFloorNumber) async {
       print(response.body);
        return FloorBeaconList.fromJson(jsonDecode(response.body));
     } else {
-      //throw Exception("Failed to fetch Location of said beacon");
+      print("Response Status NOT 200");
     }
   } on Exception catch(_) {
     print("Failed to make get request");
@@ -109,13 +109,10 @@ Future<List<Beacon>> fetchGeoBeaconListFromIdList(List<int> idList, int mapFloor
   try {
     var uri = Uri.parse(base_uri);
     final response = await http.post(uri, headers: headers, body: json.encode(http_param));
-    //print(response.body);
   
     if (response.statusCode == 200) {
-	var geoBeaconList = GeoBeaconList.fromJson(jsonDecode(response.body));
-        
-       // TODO: PUT IN PROPER MAP FLOOR INDEX
-       return geoBeaconList.getBeacons(mapFloorIndex);
+	    var geoBeaconList = GeoBeaconList.fromJson(jsonDecode(response.body));
+      return geoBeaconList.getBeacons(mapFloorIndex);
     } else {
       //throw Exception("Failed to fetch Location of said beacon");
     }
