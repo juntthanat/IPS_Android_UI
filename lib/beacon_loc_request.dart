@@ -81,7 +81,7 @@ class FloorBeaconList {
   }
 }
 
-Future<FloorBeaconList> fetchAllBeaconsByFloor(int mapFloorNumber) async {
+Future<FloorBeaconList> fetchAllFloorBeaconsByFloor(int mapFloorNumber) async {
   const base_uri = 'http://159.223.40.229:8080/api/v1';
 
   try {
