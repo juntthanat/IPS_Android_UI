@@ -6,14 +6,14 @@ class Beacon {
   int id;
   double x;
   double y;
-  String floorName;
+  String name;
   String macAddress;
 
   Beacon({
     required this.id,
     required this.x,
     required this.y,
-    required this.floorName,
+    required this.name,
     required this.macAddress
   });
   
@@ -22,17 +22,17 @@ class Beacon {
       id: json['id'],
       x: json['x'],
       y: json['y'],
-      floorName: json['floorName'],
+      name: json['name'],
       macAddress: json['macAddress'],
     );
   }
   
   factory Beacon.empty() {
-    return Beacon(id: -1, x: 0, y: 0, floorName: "", macAddress: "");
+    return Beacon(id: -1, x: 0, y: 0, name: "", macAddress: "");
   }
   
   bool isEmpty() {
-    if (id == -1 && x == 0 && y == 0 && floorName.isEmpty && macAddress.isEmpty) {
+    if (id == -1 && x == 0 && y == 0 && name.isEmpty && macAddress.isEmpty) {
       return true;
     }
     
@@ -40,9 +40,11 @@ class Beacon {
   }
   
   int getFloor() {
-    if (floorName.contains("ECC8") || floorName == "8") {
+    if (name.contains("ECC7") || name == "7") {
+      return 7;
+    } else if (name.contains("ECC8") || name == "8") {
       return 8;
-    } else if (floorName.contains("ECC9") || floorName == "9") {
+    } else if (name.contains("ECC9") || name == "9") {
       return 9;
     }
     

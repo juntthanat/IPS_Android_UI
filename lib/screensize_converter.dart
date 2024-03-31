@@ -1,5 +1,62 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+
+class MapDimensions {
+  final double geoWidth;
+  final double geoHeight;
+  final double trueWidth;
+  final double trueHeight;
+
+  const MapDimensions(this.geoWidth, this.geoHeight, this.trueWidth, this.trueHeight); 
+}
+
+class GeoScaledUnifiedMapper {
+  static const map_dimensions = [
+    MapDimensions(39.6, 73.6, 2758.0, 5121.0),
+    MapDimensions(37.4, 73.4, 2760.0, 5228.0), // 8th floor
+  ];
+
+  static double getWidthPixel(double geoX, int mapFloorIndex) {
+    var widthScale = map_dimensions[mapFloorIndex].trueWidth / map_dimensions[mapFloorIndex].geoWidth;
+    return geoX * widthScale;
+  }
+  
+  static double getHeightPixel(double geoY, int mapFloorIndex) {
+    var heightScale = map_dimensions[mapFloorIndex].trueHeight / map_dimensions[mapFloorIndex].geoHeight;
+    return geoY * heightScale;
+  }
+}
+
+class ImageRatioMapper {
+  // TODO: Find a way to use requests or something
+  static const mapFloorDimension = [
+    (2758.0, 5121.0),
+    (2760.0, 5228.0)
+  ];
+
+  static double getHeightPixel(double unscaledMapPixel, Image asset, int mapFloorIndex) {
+    double renderedHeight = asset.height ?? 1;
+    double heightScaleRatio = mapFloorDimension[mapFloorIndex].$2 / renderedHeight;
+    
+    return unscaledMapPixel / heightScaleRatio;
+  }
+  
+  static double getWidthPixel(double unscaledMapPixel, Image asset, int mapFloorIndex) {
+    double renderedWidth = asset.width ?? 1;   
+    double widthScaleRatio = mapFloorDimension[mapFloorIndex].$1 / renderedWidth;
+
+    return unscaledMapPixel / widthScaleRatio;
+  }
+}
+
+class DevicePixelMapper {
+  double devicePixelRatio = WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
+ 
+  // Converts Logical Pixel to Physical Pixel
+  double getConvertedPixel(double logicalPixel) {
+    // return logicalPixel * devicePixelRatio;
+    return logicalPixel;
+  }
+}
 
 class ScreenSizeConverter {
 
