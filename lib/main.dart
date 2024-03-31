@@ -75,6 +75,7 @@ class MainBody extends State<MainPage> {
 
   Beacon currentBeaconInfo = Beacon.empty();
   HashMap<String, Beacon> beaconMap = HashMap();
+  List<Beacon> beaconsToRender = List.empty(growable: true);
 
   final GlobalKey<InteractiveMapState> _key = GlobalKey();
   late InteractiveMap interactiveMap;  
@@ -101,6 +102,7 @@ class MainBody extends State<MainPage> {
       mapFloor: mapFloor,
       mapFloorIndex: mapFloorIndex,
       currentBeaconInfo: currentBeaconInfo,
+      beaconsToRender: beaconsToRender,
     );
 
     // Init Compass heading
@@ -237,6 +239,7 @@ class MainBody extends State<MainPage> {
       mapFloor: mapFloor,
       mapFloorIndex: mapFloorIndex,
       currentBeaconInfo: currentBeaconInfo,
+      beaconsToRender: beaconsToRender,
     );
     return Scaffold(
       appBar: AppBar(

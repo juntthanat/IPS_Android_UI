@@ -5,6 +5,7 @@ import 'package:flutter_thesis_project/screensize_converter.dart';
 class InteractiveMap extends StatefulWidget {
   final double coordinateXValue, coordinateYValue;
   final Beacon currentBeaconInfo;
+  final List<Beacon> beaconsToRender;
   final List<Image> mapFloor;
   final int mapFloorIndex;
 
@@ -15,6 +16,7 @@ class InteractiveMap extends StatefulWidget {
     required this.mapFloor,
     required this.mapFloorIndex,
     required this.currentBeaconInfo,
+    required this.beaconsToRender,
   }) : super(key: key);
   
   @override
@@ -88,21 +90,27 @@ class InteractiveMapState extends State<InteractiveMap> with TickerProviderState
             angle: 0,
             child: Stack(
               children: [
+                // Render the map's Image
                 MapImage(
                   coordinateXValue: widget.coordinateXValue,
                   coordinateYValue: widget.coordinateYValue,
                   mapFloor: widget.mapFloor, 
                   mapFloorIndex: widget.mapFloorIndex,
                 ),
+
+                // Renders the user's position pin on the map
                 UserPositionPin(mapFloorIndex: widget.mapFloorIndex, currentFloor: widget.currentBeaconInfo.getFloor(),),
-                BeaconPin(
-                  pinX: 100,
-                  pinY: 100,
-                  coordinateXValue: widget.coordinateXValue,
-                  coordinateYValue: widget.coordinateYValue,
-                  mapFloor: widget.mapFloor,
-                  mapFloorIndex: widget.mapFloorIndex
-                ),
+                
+                // Iterates through the list of beacons to render, then create objects to render them
+                for (final beacon in widget.beaconsToRender)
+                  BeaconPin(
+                    pinX: beacon.x,
+                    pinY: beacon.y,
+                    coordinateXValue: widget.coordinateXValue,
+                    coordinateYValue: widget.coordinateYValue,
+                    mapFloor: widget.mapFloor,
+                    mapFloorIndex: widget.mapFloorIndex
+                  )
               ],
             ),
           ),
