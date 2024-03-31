@@ -101,7 +101,7 @@ Future<FloorBeaconList> fetchAllFloorBeaconsByFloor(int mapFloorNumber) async {
   return FloorBeaconList.empty();
 }
 
-Future<List<Beacon>> fetchGeoBeaconListFromIdList(List<int> idList, int mapFloorIndex) async {
+Future<List<Beacon>> fetchBeaconListFromIdList(List<int> idList, int mapFloorIndex) async {
   const base_uri = 'http://159.223.40.229:8080/api/v1/beacons/beacon-id-list';
   final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
   Map<String, List<int>> http_param = { "beaconIdList": idList };
