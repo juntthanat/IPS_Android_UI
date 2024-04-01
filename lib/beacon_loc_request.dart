@@ -136,13 +136,13 @@ Future<List<Beacon>> fetchBeaconListFromIdList(List<int> idList, int mapFloorInd
 }
 
 Future<List<GeoBeacon>> fetchGeoBeaconsFromNameQuery(String name) async {
-  const base_uri = 'http://159.223.40.229:8080/api/v1/beacons/string-query';
+  const base_uri = '159.223.40.229:8080';
   final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
   Map<String, String> http_param = { "name": name };
 
   try {
-    var uri = Uri.parse(base_uri);
-    final response = await http.post(uri, headers: headers, body: json.encode(http_param));
+    var uri = Uri.http(base_uri, "/api/v1/beacons/string-query", http_param);
+    final response = await http.get(uri, headers: headers);
   
     if (response.statusCode == 200) {
 	    var geoBeaconList = GeoBeaconList.fromJson(jsonDecode(response.body));
@@ -159,13 +159,13 @@ Future<List<GeoBeacon>> fetchGeoBeaconsFromNameQuery(String name) async {
 }
 
 Future<GeoBeacon> fetchGeoBeaconFromExactNameQuery(String name) async {
-  const base_uri = 'http://159.223.40.229:8080/api/v1/beacons/exact-string-query';
+  const base_uri = '159.223.40.229:8080';
   final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
   Map<String, String> http_param = { "name": name };
 
   try {
-    var uri = Uri.parse(base_uri);
-    final response = await http.post(uri, headers: headers, body: json.encode(http_param));
+    var uri = Uri.http(base_uri, "/api/v1/beacons/exact-string-query", http_param);
+    final response = await http.get(uri, headers: headers);
   
     if (response.statusCode == 200) {
 	    return jsonDecode(response.body);
