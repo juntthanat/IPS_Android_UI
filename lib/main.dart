@@ -14,6 +14,7 @@ import 'package:flutter_thesis_project/bluetooth.dart';
 import 'package:flutter_thesis_project/map.dart';
 import 'package:flutter_thesis_project/mqtt.dart';
 import 'package:flutter_thesis_project/permissions.dart';
+import 'package:flutter_thesis_project/search_bar.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -281,7 +282,12 @@ class MainBody extends State<MainPage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.center,
-                        // Start (Input X, Input Y, and reset button)
+                        children: [
+                          Expanded(
+                            child: AsyncAutocomplete(),
+                          )
+                        ],
+                        /* // Start (Input X, Input Y, and reset button)
                         children: [
                           SizedBox(
                             width: 100,
@@ -352,7 +358,7 @@ class MainBody extends State<MainPage> {
                               )
                             )
                         ],
-                        // End (Input X, Input Y, and Reset Button)
+                        // End (Input X, Input Y, and Reset Button) */
                       ),
                     ),
                   ),

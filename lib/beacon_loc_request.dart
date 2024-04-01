@@ -124,6 +124,29 @@ Future<List<Beacon>> fetchBeaconListFromIdList(List<int> idList, int mapFloorInd
   return List.empty();
 }
 
+Future<List<GeoBeacon>> fetchGeoBeaconsFromNameQuery(String name) async {
+  const base_uri = 'http://159.223.40.229:8080/api/v1/beacons/string-query';
+  final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+  Map<String, String> http_param = { "name": name };
+
+  try {
+    var uri = Uri.parse(base_uri);
+    final response = await http.post(uri, headers: headers, body: json.encode(http_param));
+  
+    if (response.statusCode == 200) {
+	    var geoBeaconList = GeoBeaconList.fromJson(jsonDecode(response.body));
+      return geoBeaconList.geoBeaconList;
+    } else {
+      //throw Exception("Failed to fetch Location of said beacon");
+    }
+  } on Exception catch(e) {
+    print("Failed to make get request");
+    print(e);
+  }
+  
+  return List.empty();
+}
+
 Future<FloorBeaconList> fetchFloorBeaconListFromIdList(List<int> idList) async {
   final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
   List<String> idListAsString = List.empty(growable: true);
