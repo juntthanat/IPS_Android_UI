@@ -13,6 +13,17 @@ class GeoBeacon {
   final String macAddress;
 
   GeoBeacon({required this.id, required this.name, required this.geoX, required this.geoY, required this.macAddress});
+  
+  factory GeoBeacon.empty() {
+    return GeoBeacon(id: -1, name: "", geoX: 0, geoY: 0, macAddress: "");
+  }
+  
+  bool isEmpty() {
+    if (id == -1 && name == "" && geoX == 0 && geoY == 0 && macAddress == "") {
+      return true;
+    }
+    return false;
+  }
 }
 
 class GeoBeaconList {
@@ -145,6 +156,28 @@ Future<List<GeoBeacon>> fetchGeoBeaconsFromNameQuery(String name) async {
   }
   
   return List.empty();
+}
+
+Future<GeoBeacon> fetchGeoBeaconFromExactNameQuery(String name) async {
+  const base_uri = 'http://159.223.40.229:8080/api/v1/beacons/exact-string-query';
+  final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+  Map<String, String> http_param = { "name": name };
+
+  try {
+    var uri = Uri.parse(base_uri);
+    final response = await http.post(uri, headers: headers, body: json.encode(http_param));
+  
+    if (response.statusCode == 200) {
+	    return jsonDecode(response.body);
+    } else {
+      //throw Exception("Failed to fetch Location of said beacon");
+    }
+  } on Exception catch(e) {
+    print("Failed to make get request");
+    print(e);
+  }
+  
+  return GeoBeacon.empty();
 }
 
 Future<FloorBeaconList> fetchFloorBeaconListFromIdList(List<int> idList) async {
