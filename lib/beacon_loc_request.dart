@@ -123,3 +123,27 @@ Future<List<Beacon>> fetchBeaconListFromIdList(List<int> idList, int mapFloorInd
   
   return List.empty();
 }
+
+Future<FloorBeaconList> fetchFloorBeaconListFromIdList(List<int> idList) async {
+  final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+  List<String> idListAsString = List.empty(growable: true);
+
+  idList.forEach((element) => idListAsString.add(element.toString()));
+
+  try {
+    var uri = Uri.http("159.223.40.229:8080", "/api/v1/floor-beacons/beaconId", { "beaconIdList" : idListAsString });
+    final response = await http.get(uri, headers: headers);
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      FloorBeaconList floorBeaconList = FloorBeaconList.fromJson(jsonDecode(response.body));
+      return floorBeaconList;
+    }
+
+  } on Exception catch(e) {
+    print("Failed to make get request");
+    print(e);
+  }
+
+  return FloorBeaconList.empty();
+}
