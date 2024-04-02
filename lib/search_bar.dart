@@ -83,7 +83,8 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
       },
       onSelected: (String selection) async {
         debugPrint('You just selected $selection');
-        // final selectedBeacon = await fetchGeoBeaconFromExactNameQuery(selection);
+        final selectedBeacon = await fetchGeoBeaconFromExactNameQuery(selection);
+        print("Selected Beacon's Info: Beacon(${selectedBeacon.id}, ${selectedBeacon.name}, ${selectedBeacon.macAddress}, ${selectedBeacon.geoX}, ${selectedBeacon.geoY})");
       },
     );
   }

@@ -18,6 +18,10 @@ class GeoBeacon {
     return GeoBeacon(id: -1, name: "", geoX: 0, geoY: 0, macAddress: "");
   }
   
+  factory GeoBeacon.fromJson(Map<String, dynamic> json) {
+    return GeoBeacon(id: json["beaconId"], name: json["name"], geoX: json["geoX"], geoY: json["geoY"], macAddress: json["macAddress"]);
+  }
+  
   bool isEmpty() {
     if (id == -1 && name == "" && geoX == 0 && geoY == 0 && macAddress == "") {
       return true;
@@ -168,7 +172,7 @@ Future<GeoBeacon> fetchGeoBeaconFromExactNameQuery(String name) async {
     final response = await http.get(uri, headers: headers);
   
     if (response.statusCode == 200) {
-	    return jsonDecode(response.body);
+	    return GeoBeacon.fromJson(jsonDecode(response.body));
     } else {
       //throw Exception("Failed to fetch Location of said beacon");
     }
