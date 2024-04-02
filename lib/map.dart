@@ -109,7 +109,8 @@ class InteractiveMapState extends State<InteractiveMap> with TickerProviderState
                     coordinateXValue: widget.coordinateXValue,
                     coordinateYValue: widget.coordinateYValue,
                     mapFloor: widget.mapFloor,
-                    mapFloorIndex: widget.mapFloorIndex
+                    mapFloorIndex: widget.mapFloorIndex,
+                    visible: widget.mapFloorIndex == beacon.getFloorIndex(),
                   )
               ],
             ),
@@ -195,6 +196,7 @@ class BeaconPin extends StatelessWidget {
   final double pinX, pinY;
   final List<Image> mapFloor;
   final int mapFloorIndex;
+  final bool visible;
 
   BeaconPin({
     super.key,
@@ -204,6 +206,7 @@ class BeaconPin extends StatelessWidget {
     required this.coordinateYValue,
     required this.mapFloor,
     required this.mapFloorIndex,
+    required this.visible,
   });
 
   @override
@@ -213,16 +216,19 @@ class BeaconPin extends StatelessWidget {
 
     return Transform.translate(
       offset: Offset(dx, dy),
-      child: SizedBox(
-        height: screenConverter.getHeightPixel(0.75),
-        width: screenConverter.getWidthPixel(1.0),
-        child: Center(
-          child: Container(
-            height: 10,
-            width: 10,
-            decoration: const BoxDecoration(
-              color: Colors.red,
-              shape: BoxShape.rectangle,
+      child: Visibility(
+        visible: visible,
+        child: SizedBox(
+          height: screenConverter.getHeightPixel(0.75),
+          width: screenConverter.getWidthPixel(1.0),
+          child: Center(
+            child: Container(
+              height: 10,
+              width: 10,
+              decoration: const BoxDecoration(
+                color: Colors.grey,
+                shape: BoxShape.rectangle,
+              ),
             ),
           ),
         ),
