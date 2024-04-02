@@ -1,12 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/beacon_loc_request.dart';
+import 'package:flutter_thesis_project/screensize_converter.dart';
 
 const Duration debounceDuration = Duration(milliseconds: 500);
 
 class AsyncAutocomplete extends StatefulWidget {
-  const AsyncAutocomplete();
+  List<Beacon> beaconsToRender;
+
+  AsyncAutocomplete({super.key, required this.beaconsToRender});
 
   @override
   State<AsyncAutocomplete> createState() => _AsyncAutocompleteState();
@@ -83,8 +87,20 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
       },
       onSelected: (String selection) async {
         debugPrint('You just selected $selection');
-        final selectedBeacon = await fetchGeoBeaconFromExactNameQuery(selection);
-        print("Selected Beacon's Info: Beacon(${selectedBeacon.id}, ${selectedBeacon.name}, ${selectedBeacon.macAddress}, ${selectedBeacon.geoX}, ${selectedBeacon.geoY})");
+        var selectedGeoBeacon = await fetchGeoBeaconFromExactNameQuery(selection);
+        if (selectedGeoBeacon.getFloorIndex() == -1) {
+          return;
+        }
+
+        var scaledUnifiedX = GeoScaledUnifiedMapper.getWidthPixel(selectedGeoBeacon.geoX, selectedGeoBeacon.getFloorIndex());
+        var scaledUnifiedY = GeoScaledUnifiedMapper.getHeightPixel(selectedGeoBeacon.geoY, selectedGeoBeacon.getFloorIndex());
+
+        print("Scaled Unified X: $scaledUnifiedX Y: $scaledUnifiedY");
+
+        var selectedBeacon = Beacon(id: selectedGeoBeacon.id, x: scaledUnifiedX, y: scaledUnifiedY, name: selectedGeoBeacon.name, macAddress: selectedGeoBeacon.macAddress);
+
+        widget.beaconsToRender.clear();
+        widget.beaconsToRender.add(selectedBeacon);
       },
     );
   }

@@ -28,6 +28,17 @@ class GeoBeacon {
     }
     return false;
   }
+
+  int getFloorIndex() {
+    if (name.contains("ECC7")) {
+      return 0;
+    } else if (name.contains("ECC8")) {
+      return 1;
+    }
+    
+    print("Name does not contain floor's information");
+    return -1;
+  }
 }
 
 class GeoBeaconList {

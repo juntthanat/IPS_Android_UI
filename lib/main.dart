@@ -284,7 +284,7 @@ class MainBody extends State<MainPage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
-                            child: AsyncAutocomplete(),
+                            child: AsyncAutocomplete(beaconsToRender: beaconsToRender),
                           )
                         ],
                         /* // Start (Input X, Input Y, and reset button)
