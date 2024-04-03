@@ -77,7 +77,9 @@ class MainBody extends State<MainPage> {
 
   Beacon currentBeaconInfo = Beacon.empty();
   HashMap<String, Beacon> beaconMap = HashMap();
+
   List<Beacon> beaconsToRender = List.empty(growable: true);
+  Beacon selectedBeacon = Beacon.empty();
 
   final GlobalKey<InteractiveMapState> _key = GlobalKey();
   late InteractiveMap interactiveMap;  
@@ -105,6 +107,7 @@ class MainBody extends State<MainPage> {
       mapFloorIndex: mapFloorIndex,
       currentBeaconInfo: currentBeaconInfo,
       beaconsToRender: beaconsToRender,
+      selectedBeacon: selectedBeacon,
     );
 
     // Init Compass heading
@@ -250,6 +253,7 @@ class MainBody extends State<MainPage> {
       mapFloorIndex: mapFloorIndex,
       currentBeaconInfo: currentBeaconInfo,
       beaconsToRender: beaconsToRender,
+      selectedBeacon: selectedBeacon,
     );
     return Scaffold(
       appBar: AppBar(
@@ -293,7 +297,7 @@ class MainBody extends State<MainPage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
-                            child: AsyncAutocomplete(beaconsToRender: beaconsToRender),
+                            child: AsyncAutocomplete(selectedBeacon: selectedBeacon),
                           )
                         ],
                         /* // Start (Input X, Input Y, and reset button)
