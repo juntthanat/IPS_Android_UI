@@ -8,6 +8,7 @@ class InteractiveMap extends StatefulWidget {
   final List<Beacon> beaconsToRender;
   final List<Image> mapFloor;
   final int mapFloorIndex;
+  final Beacon selectedBeacon;
 
   const InteractiveMap({
     required Key key,
@@ -17,14 +18,17 @@ class InteractiveMap extends StatefulWidget {
     required this.mapFloorIndex,
     required this.currentBeaconInfo,
     required this.beaconsToRender,
+    required this.selectedBeacon
   }) : super(key: key);
-  
+
   @override
   State<InteractiveMap> createState() => InteractiveMapState();
 }
 
-class InteractiveMapState extends State<InteractiveMap> with TickerProviderStateMixin {
-  final TransformationController mapTransformationController = TransformationController();
+class InteractiveMapState extends State<InteractiveMap>
+    with TickerProviderStateMixin {
+  final TransformationController mapTransformationController =
+      TransformationController();
 
   Animation<Matrix4>? mapAnimationReset;
 
@@ -94,13 +98,16 @@ class InteractiveMapState extends State<InteractiveMap> with TickerProviderState
                 MapImage(
                   coordinateXValue: widget.coordinateXValue,
                   coordinateYValue: widget.coordinateYValue,
-                  mapFloor: widget.mapFloor, 
+                  mapFloor: widget.mapFloor,
                   mapFloorIndex: widget.mapFloorIndex,
                 ),
 
                 // Renders the user's position pin on the map
-                UserPositionPin(mapFloorIndex: widget.mapFloorIndex, currentFloor: widget.currentBeaconInfo.getFloor(),),
-                
+                UserPositionPin(
+                  mapFloorIndex: widget.mapFloorIndex,
+                  currentFloor: widget.currentBeaconInfo.getFloor(),
+                ),
+
                 // Iterates through the list of beacons to render, then create objects to render them
                 for (final beacon in widget.beaconsToRender)
                   BeaconPin(
@@ -109,7 +116,9 @@ class InteractiveMapState extends State<InteractiveMap> with TickerProviderState
                     coordinateXValue: widget.coordinateXValue,
                     coordinateYValue: widget.coordinateYValue,
                     mapFloor: widget.mapFloor,
-                    mapFloorIndex: widget.mapFloorIndex
+                    mapFloorIndex: widget.mapFloorIndex,
+                    visible: widget.mapFloorIndex == beacon.getFloorIndex(),
+                    selected: !widget.selectedBeacon.isEmpty() && (widget.selectedBeacon.macAddress.toLowerCase() == beacon.macAddress.toLowerCase()),
                   )
               ],
             ),
@@ -138,8 +147,11 @@ class MapImage extends StatelessWidget {
     return Center(
       child: Transform.translate(
         offset: Offset(
-          ImageRatioMapper.getWidthPixel(coordinateXValue * -1, mapFloor[mapFloorIndex], mapFloorIndex),
-          ImageRatioMapper.getHeightPixel(coordinateYValue, mapFloor[mapFloorIndex], mapFloorIndex) - 20,
+          ImageRatioMapper.getWidthPixel(
+              coordinateXValue * -1, mapFloor[mapFloorIndex], mapFloorIndex),
+          ImageRatioMapper.getHeightPixel(
+                  // coordinateYValue , mapFloor[mapFloorIndex], mapFloorIndex) - 20,
+                  coordinateYValue , mapFloor[mapFloorIndex], mapFloorIndex),
         ),
         child: mapFloor[mapFloorIndex],
       ),
@@ -152,11 +164,8 @@ class UserPositionPin extends StatelessWidget {
   final int mapFloorIndex;
   final int currentFloor;
 
-  UserPositionPin({
-    super.key,
-    required this.mapFloorIndex,
-    required this.currentFloor
-  });
+  UserPositionPin(
+      {super.key, required this.mapFloorIndex, required this.currentFloor});
 
   @override
   Widget build(BuildContext context) {
@@ -195,6 +204,8 @@ class BeaconPin extends StatelessWidget {
   final double pinX, pinY;
   final List<Image> mapFloor;
   final int mapFloorIndex;
+  final bool visible;
+  final bool selected;
 
   BeaconPin({
     super.key,
@@ -204,26 +215,34 @@ class BeaconPin extends StatelessWidget {
     required this.coordinateYValue,
     required this.mapFloor,
     required this.mapFloorIndex,
+    required this.visible,
+    required this.selected,
   });
 
   @override
   Widget build(BuildContext context) {
-    var dx = ImageRatioMapper.getWidthPixel((coordinateXValue * -1) + pinX, mapFloor[mapFloorIndex], mapFloorIndex);
-    var dy = ImageRatioMapper.getHeightPixel(coordinateYValue + (pinY * -1), mapFloor[mapFloorIndex], mapFloorIndex);
+    var dx = ImageRatioMapper.getWidthPixel(
+        (coordinateXValue * -1) + pinX , mapFloor[mapFloorIndex], mapFloorIndex);
+    var dy = ImageRatioMapper.getHeightPixel(
+        (coordinateYValue + (pinY * -0.90)), mapFloor[mapFloorIndex], mapFloorIndex);
 
     return Transform.translate(
       offset: Offset(dx, dy),
-      child: SizedBox(
-        height: screenConverter.getHeightPixel(0.75),
-        width: screenConverter.getWidthPixel(1.0),
-        child: Center(
-          child: Container(
-            height: 10,
-            width: 10,
-            decoration: const BoxDecoration(
-              color: Colors.red,
-              shape: BoxShape.rectangle,
+      child: Visibility(
+        visible: visible,
+        child: SizedBox(
+          height: screenConverter.getHeightPixel(0.75),
+          width: screenConverter.getWidthPixel(1.0),
+          child: Center(
+            child: Container(
+              height: 10,
+              width: 10,
+              decoration: BoxDecoration(
+                color: selected ? Colors.blue : Colors.grey,
+                shape: BoxShape.rectangle,
+              ),
             ),
+            
           ),
         ),
       ),

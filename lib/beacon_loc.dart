@@ -50,6 +50,16 @@ class Beacon {
     
     return -1;
   }
+  
+  int getFloorIndex() {
+    if (name.contains("ECC7")) {
+      return 0;
+    } else if (name.contains("ECC8")) {
+      return 1;
+    }
+    
+    return -1;
+  }
 }
 
 Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress) async {

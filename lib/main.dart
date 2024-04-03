@@ -10,10 +10,12 @@ import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
+import 'package:flutter_thesis_project/beacon_loc_request.dart';
 import 'package:flutter_thesis_project/bluetooth.dart';
 import 'package:flutter_thesis_project/map.dart';
 import 'package:flutter_thesis_project/mqtt.dart';
 import 'package:flutter_thesis_project/permissions.dart';
+import 'package:flutter_thesis_project/search_bar.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -75,7 +77,9 @@ class MainBody extends State<MainPage> {
 
   Beacon currentBeaconInfo = Beacon.empty();
   HashMap<String, Beacon> beaconMap = HashMap();
+
   List<Beacon> beaconsToRender = List.empty(growable: true);
+  Beacon selectedBeacon = Beacon.empty();
 
   final GlobalKey<InteractiveMapState> _key = GlobalKey();
   late InteractiveMap interactiveMap;  
@@ -103,6 +107,7 @@ class MainBody extends State<MainPage> {
       mapFloorIndex: mapFloorIndex,
       currentBeaconInfo: currentBeaconInfo,
       beaconsToRender: beaconsToRender,
+      selectedBeacon: selectedBeacon,
     );
 
     // Init Compass heading
@@ -139,6 +144,14 @@ class MainBody extends State<MainPage> {
       bluetoothNotifier.clearOldDevices(LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC);
       fetchPosition();
     });
+    
+    () async {
+      FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(1);
+      List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(floorBeaconList.beaconList.map((e) => e.beaconId).toList(), 0);
+
+      beaconsToRender.clear();
+      beaconsToRender.addAll(allBeaconsOfFloor);
+    }.call();
   }
 
   // Fetches the position of the nearest Bluetooth Beacon
@@ -240,6 +253,7 @@ class MainBody extends State<MainPage> {
       mapFloorIndex: mapFloorIndex,
       currentBeaconInfo: currentBeaconInfo,
       beaconsToRender: beaconsToRender,
+      selectedBeacon: selectedBeacon,
     );
     return Scaffold(
       appBar: AppBar(
@@ -281,7 +295,12 @@ class MainBody extends State<MainPage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.center,
-                        // Start (Input X, Input Y, and reset button)
+                        children: [
+                          Expanded(
+                            child: AsyncAutocomplete(selectedBeacon: selectedBeacon),
+                          )
+                        ],
+                        /* // Start (Input X, Input Y, and reset button)
                         children: [
                           SizedBox(
                             width: 100,
@@ -352,7 +371,7 @@ class MainBody extends State<MainPage> {
                               )
                             )
                         ],
-                        // End (Input X, Input Y, and Reset Button)
+                        // End (Input X, Input Y, and Reset Button) */
                       ),
                     ),
                   ),
@@ -366,11 +385,11 @@ class MainBody extends State<MainPage> {
           ],
         ),
       ),
-      floatingActionButton: constructFloorSelectorFloatingActionBar(context),
+      floatingActionButton: constructFloorSelectorFloatingActionBar(context, beaconsToRender),
     );
   }
 
-  Column constructFloorSelectorFloatingActionBar(BuildContext context) {
+  Column constructFloorSelectorFloatingActionBar(BuildContext context, List<Beacon> beaconsToRender) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -384,7 +403,14 @@ class MainBody extends State<MainPage> {
                   : Theme.of(context).colorScheme.inversePrimary,
               foregroundColor:
                   getCurrentMapFloorIndex() == 1 ? Colors.white : Colors.black,
-              onPressed: () => setMapFloorByIndex(1),
+              onPressed: () async {
+                setMapFloorByIndex(1);
+                FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(2);
+                List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(floorBeaconList.beaconList.map((e) => e.beaconId).toList(), 1);
+
+                beaconsToRender.clear();
+                beaconsToRender.addAll(allBeaconsOfFloor);
+              },
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(100),
@@ -410,7 +436,14 @@ class MainBody extends State<MainPage> {
                   : Theme.of(context).colorScheme.inversePrimary,
               foregroundColor:
                   getCurrentMapFloorIndex() == 0 ? Colors.white : Colors.black,
-              onPressed: () => setMapFloorByIndex(0),
+              onPressed: () async {
+                setMapFloorByIndex(0);
+                FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(1);
+                List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(floorBeaconList.beaconList.map((e) => e.beaconId).toList(), 0);
+
+                beaconsToRender.clear();
+                beaconsToRender.addAll(allBeaconsOfFloor);
+              },
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(0),

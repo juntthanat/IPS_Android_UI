@@ -17,12 +17,12 @@ class GeoScaledUnifiedMapper {
 
   static double getWidthPixel(double geoX, int mapFloorIndex) {
     var widthScale = map_dimensions[mapFloorIndex].trueWidth / map_dimensions[mapFloorIndex].geoWidth;
-    return geoX * widthScale;
+    return (geoX * widthScale) - (map_dimensions[mapFloorIndex].trueWidth / 2);
   }
   
   static double getHeightPixel(double geoY, int mapFloorIndex) {
     var heightScale = map_dimensions[mapFloorIndex].trueHeight / map_dimensions[mapFloorIndex].geoHeight;
-    return geoY * heightScale;
+    return (-1 * (geoY * heightScale)) + (map_dimensions[mapFloorIndex].trueHeight / 2);
   }
 }
 
