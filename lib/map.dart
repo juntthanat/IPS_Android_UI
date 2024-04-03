@@ -8,6 +8,7 @@ class InteractiveMap extends StatefulWidget {
   final List<Beacon> beaconsToRender;
   final List<Image> mapFloor;
   final int mapFloorIndex;
+  final Beacon selectedBeacon;
 
   const InteractiveMap({
     required Key key,
@@ -17,6 +18,7 @@ class InteractiveMap extends StatefulWidget {
     required this.mapFloorIndex,
     required this.currentBeaconInfo,
     required this.beaconsToRender,
+    required this.selectedBeacon
   }) : super(key: key);
 
   @override
@@ -116,6 +118,7 @@ class InteractiveMapState extends State<InteractiveMap>
                     mapFloor: widget.mapFloor,
                     mapFloorIndex: widget.mapFloorIndex,
                     visible: widget.mapFloorIndex == beacon.getFloorIndex(),
+                    selected: !widget.selectedBeacon.isEmpty() && (widget.selectedBeacon.macAddress.toLowerCase() == beacon.macAddress.toLowerCase()),
                   )
               ],
             ),
@@ -202,6 +205,7 @@ class BeaconPin extends StatelessWidget {
   final List<Image> mapFloor;
   final int mapFloorIndex;
   final bool visible;
+  final bool selected;
 
   BeaconPin({
     super.key,
@@ -212,6 +216,7 @@ class BeaconPin extends StatelessWidget {
     required this.mapFloor,
     required this.mapFloorIndex,
     required this.visible,
+    required this.selected,
   });
 
   @override
@@ -232,8 +237,8 @@ class BeaconPin extends StatelessWidget {
             child: Container(
               height: 10,
               width: 10,
-              decoration: const BoxDecoration(
-                color: Colors.grey,
+              decoration: BoxDecoration(
+                color: selected ? Colors.blue : Colors.grey,
                 shape: BoxShape.rectangle,
               ),
             ),

@@ -8,9 +8,9 @@ import 'package:flutter_thesis_project/screensize_converter.dart';
 const Duration debounceDuration = Duration(milliseconds: 500);
 
 class AsyncAutocomplete extends StatefulWidget {
-  List<Beacon> beaconsToRender;
+  Beacon selectedBeacon;
 
-  AsyncAutocomplete({super.key, required this.beaconsToRender});
+  AsyncAutocomplete({super.key, required this.selectedBeacon});
 
   @override
   State<AsyncAutocomplete> createState() => _AsyncAutocompleteState();
@@ -98,9 +98,17 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
         print("Scaled Unified X: $scaledUnifiedX Y: $scaledUnifiedY");
 
         var selectedBeacon = Beacon(id: selectedGeoBeacon.id, x: scaledUnifiedX, y: scaledUnifiedY, name: selectedGeoBeacon.name, macAddress: selectedGeoBeacon.macAddress);
+        
+        // DO NOT MODIFY THE FOLLOWING 5 LINES (DANGER BLOCK) TO USE ASSIGNMENT INSTEAD OF THIS UGLY THING
+        // REASON: THE PARENT COMPONENT WILL NOT ALLOW THE NEW VARIABLE TO BE ASSIGNED
 
-        widget.beaconsToRender.clear();
-        widget.beaconsToRender.add(selectedBeacon);
+        // START DANGER BLOCK
+        widget.selectedBeacon.id = selectedBeacon.id;
+        widget.selectedBeacon.x = selectedBeacon.x;
+        widget.selectedBeacon.y = selectedBeacon.y;
+        widget.selectedBeacon.name = selectedBeacon.name;
+        widget.selectedBeacon.macAddress = selectedBeacon.macAddress;
+        // END DANGER BLOCK
       },
     );
   }
