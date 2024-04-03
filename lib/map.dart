@@ -224,7 +224,7 @@ class BeaconPin extends StatelessWidget {
     var dx = ImageRatioMapper.getWidthPixel(
         (coordinateXValue * -1) + pinX , mapFloor[mapFloorIndex], mapFloorIndex);
     var dy = ImageRatioMapper.getHeightPixel(
-        (coordinateYValue + (pinY * -0.95)), mapFloor[mapFloorIndex], mapFloorIndex);
+        (coordinateYValue + (pinY * -0.90)), mapFloor[mapFloorIndex], mapFloorIndex);
 
     return Transform.translate(
       offset: Offset(dx, dy),
