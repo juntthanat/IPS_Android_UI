@@ -118,7 +118,7 @@ class InteractiveMapState extends State<InteractiveMap>
                     mapFloor: widget.mapFloor,
                     mapFloorIndex: widget.mapFloorIndex,
                     visible: widget.mapFloorIndex == beacon.getFloorIndex(),
-                    selected: widget.selectedBeacon.macAddress.toLowerCase() == beacon.macAddress.toLowerCase(),
+                    selected: !widget.selectedBeacon.isEmpty() && (widget.selectedBeacon.macAddress.toLowerCase() == beacon.macAddress.toLowerCase()),
                   )
               ],
             ),
