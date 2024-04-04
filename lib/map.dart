@@ -10,16 +10,16 @@ class InteractiveMap extends StatefulWidget {
   final int mapFloorIndex;
   final Beacon selectedBeacon;
 
-  const InteractiveMap({
-    required Key key,
-    required this.coordinateXValue,
-    required this.coordinateYValue,
-    required this.mapFloor,
-    required this.mapFloorIndex,
-    required this.currentBeaconInfo,
-    required this.beaconsToRender,
-    required this.selectedBeacon
-  }) : super(key: key);
+  const InteractiveMap(
+      {required Key key,
+      required this.coordinateXValue,
+      required this.coordinateYValue,
+      required this.mapFloor,
+      required this.mapFloorIndex,
+      required this.currentBeaconInfo,
+      required this.beaconsToRender,
+      required this.selectedBeacon})
+      : super(key: key);
 
   @override
   State<InteractiveMap> createState() => InteractiveMapState();
@@ -118,7 +118,9 @@ class InteractiveMapState extends State<InteractiveMap>
                     mapFloor: widget.mapFloor,
                     mapFloorIndex: widget.mapFloorIndex,
                     visible: widget.mapFloorIndex == beacon.getFloorIndex(),
-                    selected: !widget.selectedBeacon.isEmpty() && (widget.selectedBeacon.macAddress.toLowerCase() == beacon.macAddress.toLowerCase()),
+                    selected: !widget.selectedBeacon.isEmpty() &&
+                        (widget.selectedBeacon.macAddress.toLowerCase() ==
+                            beacon.macAddress.toLowerCase()),
                   )
               ],
             ),
@@ -150,8 +152,10 @@ class MapImage extends StatelessWidget {
           ImageRatioMapper.getWidthPixel(
               coordinateXValue * -1, mapFloor[mapFloorIndex], mapFloorIndex),
           ImageRatioMapper.getHeightPixel(
-                  // coordinateYValue , mapFloor[mapFloorIndex], mapFloorIndex) - 20,
-                  coordinateYValue , mapFloor[mapFloorIndex], mapFloorIndex),
+              // coordinateYValue , mapFloor[mapFloorIndex], mapFloorIndex) - 20,
+              coordinateYValue,
+              mapFloor[mapFloorIndex],
+              mapFloorIndex),
         ),
         child: mapFloor[mapFloorIndex],
       ),
@@ -179,15 +183,15 @@ class UserPositionPin extends StatelessWidget {
         child: Center(
           child: Container(
             // TODO: REVERT
-            /* height: 24,
-            width: 24, */
-            height: 10,
-            width: 10,
+            height: 24,
+            width: 24,
+            // height: 10,
+            // width: 10,
             decoration: const BoxDecoration(
-              color: Colors.orange,
-              shape: BoxShape.rectangle,
+              color: Color.fromRGBO(255, 77, 0, 1),
+              // shape: BoxShape.rectangle,
               // TODO: REVERT
-              // shape: BoxShape.circle,
+              shape: BoxShape.circle,
             ),
           ),
         ),
@@ -222,9 +226,11 @@ class BeaconPin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var dx = ImageRatioMapper.getWidthPixel(
-        (coordinateXValue * -1) + pinX , mapFloor[mapFloorIndex], mapFloorIndex);
+        (coordinateXValue * -1) + pinX, mapFloor[mapFloorIndex], mapFloorIndex);
     var dy = ImageRatioMapper.getHeightPixel(
-        (coordinateYValue + (pinY * -0.90)), mapFloor[mapFloorIndex], mapFloorIndex);
+        (coordinateYValue + (pinY * -0.90)),
+        mapFloor[mapFloorIndex],
+        mapFloorIndex);
 
     return Transform.translate(
       offset: Offset(dx, dy),
@@ -242,7 +248,6 @@ class BeaconPin extends StatelessWidget {
                 shape: BoxShape.rectangle,
               ),
             ),
-            
           ),
         ),
       ),
