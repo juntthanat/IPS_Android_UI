@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_compass/flutter_compass.dart';
@@ -82,7 +83,7 @@ class MainBody extends State<MainPage> {
   Beacon selectedBeacon = Beacon.empty();
 
   final GlobalKey<InteractiveMapState> _key = GlobalKey();
-  late InteractiveMap interactiveMap;  
+  late InteractiveMap interactiveMap;
 
   @override
   void dispose() {
@@ -98,7 +99,7 @@ class MainBody extends State<MainPage> {
   void initState() {
     super.initState();
     initPermissionRequest();
-    
+
     interactiveMap = InteractiveMap(
       key: _key,
       coordinateXValue: coordinateXValue,
@@ -124,16 +125,20 @@ class MainBody extends State<MainPage> {
         .setScannerStatusStreamCallback(onBluetoothStatusChangeHandler);
     bluetoothNotifier.scan();
 
-    mqttHandler.setOnConnected(() => mqttHandler.subscribe("LOLICON/CALIBRATION/METHOD"));
+    mqttHandler.setOnConnected(
+        () => mqttHandler.subscribe("LOLICON/CALIBRATION/METHOD"));
     mqttHandler.connect();
     mqttHandler.setCallback((c) {
       final message = c[0].payload as MqttPublishMessage;
-      final payload = MqttPublishPayload.bytesToStringAsString(message.payload.message);
+      final payload =
+          MqttPublishPayload.bytesToStringAsString(message.payload.message);
 
       try {
         final payload_json = json.decode(payload) as Map<String, dynamic>;
-        bluetoothNotifier.setDeviceRssiDiff(payload_json['macAddress'], payload_json['diff']);
-        print('macAddress: ${payload_json['macAddress']}, RSSI: ${payload_json['rssi']}, diff: ${payload_json['diff']}');
+        bluetoothNotifier.setDeviceRssiDiff(
+            payload_json['macAddress'], payload_json['diff']);
+        print(
+            'macAddress: ${payload_json['macAddress']}, RSSI: ${payload_json['rssi']}, diff: ${payload_json['diff']}');
       } catch (e) {
         return;
       }
@@ -144,10 +149,11 @@ class MainBody extends State<MainPage> {
       bluetoothNotifier.clearOldDevices(LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC);
       fetchPosition();
     });
-    
+
     () async {
       FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(1);
-      List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(floorBeaconList.beaconList.map((e) => e.beaconId).toList(), 0);
+      List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(
+          floorBeaconList.beaconList.map((e) => e.beaconId).toList(), 0);
 
       beaconsToRender.clear();
       beaconsToRender.addAll(allBeaconsOfFloor);
@@ -171,7 +177,7 @@ class MainBody extends State<MainPage> {
 
     if (beaconInfo.isEmpty()) {
       print("Beacon not found in database");
-    } else  {
+    } else {
       beaconMap[bluetoothNotifier.nearestDevice.id] = beaconInfo;
     }
 
@@ -180,11 +186,15 @@ class MainBody extends State<MainPage> {
 
       if (!beaconInfo.isEmpty()) {
         // TODO: Properly Implement getFloor
-        var unifiedX = GeoScaledUnifiedMapper.getWidthPixel(currentBeaconInfo.x, mapFloorIndex);
-        var unifiedY = GeoScaledUnifiedMapper.getHeightPixel(currentBeaconInfo.y, mapFloorIndex);
-        
-        var scaledUnifiedX = ImageRatioMapper.getWidthPixel(unifiedX, mapFloor[mapFloorIndex], mapFloorIndex);
-        var scaledUnifiedY = ImageRatioMapper.getWidthPixel(unifiedY, mapFloor[mapFloorIndex], mapFloorIndex);
+        var unifiedX = GeoScaledUnifiedMapper.getWidthPixel(
+            currentBeaconInfo.x, mapFloorIndex);
+        var unifiedY = GeoScaledUnifiedMapper.getHeightPixel(
+            currentBeaconInfo.y, mapFloorIndex);
+
+        var scaledUnifiedX = ImageRatioMapper.getWidthPixel(
+            unifiedX, mapFloor[mapFloorIndex], mapFloorIndex);
+        var scaledUnifiedY = ImageRatioMapper.getWidthPixel(
+            unifiedY, mapFloor[mapFloorIndex], mapFloorIndex);
 
         coordinateXValue = scaledUnifiedX;
         coordinateYValue = scaledUnifiedY;
@@ -269,38 +279,83 @@ class MainBody extends State<MainPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              // Header (Compass)
-              height: screenConverter
-                  .getHeightPixel(0.15), // Header (Compass) Height
-              width: screenConverter.getWidthPixel(1), // Header (Compass) Width
-              color: Colors.grey[900],
-              child: Stack(
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // cadrantAngle(context, screenConverter, heading),
-                      Text(
-                        "(X: $coordinateXValue, Y: $coordinateYValue)",
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
-                  Positioned.fill(
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: 100,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: AsyncAutocomplete(selectedBeacon: selectedBeacon),
-                          )
-                        ],
-                        /* // Start (Input X, Input Y, and reset button)
+            Row(children: [
+              Container(
+                height: screenConverter.getHeightPixel(0.15),
+                width: screenConverter.getWidthPixel(0.25),
+                color: Colors.grey[900],
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                        width: 75.0,
+                        height: 75.0,
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 2.0,
+                            )),
+                        child: Padding(
+                            padding:
+                                EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 16.0),
+                            child: 
+                            // Change to Icon Later Start
+                            Container(
+                              decoration: new BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.rectangle,
+                              ),
+                              child: Text(
+                                "^",
+                                style: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w900),
+                              ),
+                            )
+                            // Change to Icon Later End
+                            ))
+                  ],
+                ),
+              ),
+              Container(
+                // Header (Compass)
+                height: screenConverter
+                    .getHeightPixel(0.15), // Header (Compass) Height
+                width: screenConverter
+                    .getWidthPixel(0.75), // Header (Compass) Width
+                color: Colors.grey[900],
+                child: Stack(
+                  children: [
+                    Text(
+                      "hello",
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // cadrantAngle(context, screenConverter, heading),
+                        Text(
+                          "(X: $coordinateXValue, Y: $coordinateYValue)",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    Positioned.fill(
+                      child: Container(
+                        alignment: Alignment.center,
+                        height: 100,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: AsyncAutocomplete(
+                                  selectedBeacon: selectedBeacon),
+                            )
+                          ],
+                          /* // Start (Input X, Input Y, and reset button)
                         children: [
                           SizedBox(
                             width: 100,
@@ -372,12 +427,13 @@ class MainBody extends State<MainPage> {
                             )
                         ],
                         // End (Input X, Input Y, and Reset Button) */
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ]),
             SizedBox(
               height: screenConverter.getHeightPixel(0.75),
               child: interactiveMap,
@@ -385,11 +441,13 @@ class MainBody extends State<MainPage> {
           ],
         ),
       ),
-      floatingActionButton: constructFloorSelectorFloatingActionBar(context, beaconsToRender),
+      floatingActionButton:
+          constructFloorSelectorFloatingActionBar(context, beaconsToRender),
     );
   }
 
-  Column constructFloorSelectorFloatingActionBar(BuildContext context, List<Beacon> beaconsToRender) {
+  Column constructFloorSelectorFloatingActionBar(
+      BuildContext context, List<Beacon> beaconsToRender) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -405,8 +463,14 @@ class MainBody extends State<MainPage> {
                   getCurrentMapFloorIndex() == 1 ? Colors.white : Colors.black,
               onPressed: () async {
                 setMapFloorByIndex(1);
-                FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(2);
-                List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(floorBeaconList.beaconList.map((e) => e.beaconId).toList(), 1);
+                FloorBeaconList floorBeaconList =
+                    await fetchAllFloorBeaconsByFloor(2);
+                List<Beacon> allBeaconsOfFloor =
+                    await fetchBeaconListFromIdList(
+                        floorBeaconList.beaconList
+                            .map((e) => e.beaconId)
+                            .toList(),
+                        1);
 
                 beaconsToRender.clear();
                 beaconsToRender.addAll(allBeaconsOfFloor);
@@ -438,8 +502,14 @@ class MainBody extends State<MainPage> {
                   getCurrentMapFloorIndex() == 0 ? Colors.white : Colors.black,
               onPressed: () async {
                 setMapFloorByIndex(0);
-                FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(1);
-                List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(floorBeaconList.beaconList.map((e) => e.beaconId).toList(), 0);
+                FloorBeaconList floorBeaconList =
+                    await fetchAllFloorBeaconsByFloor(1);
+                List<Beacon> allBeaconsOfFloor =
+                    await fetchBeaconListFromIdList(
+                        floorBeaconList.beaconList
+                            .map((e) => e.beaconId)
+                            .toList(),
+                        0);
 
                 beaconsToRender.clear();
                 beaconsToRender.addAll(allBeaconsOfFloor);
@@ -501,4 +571,3 @@ Column cadrantAngle(BuildContext context, screenConverter, heading) {
     ],
   );
 }
-
