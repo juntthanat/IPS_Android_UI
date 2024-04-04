@@ -15,6 +15,7 @@ import 'package:flutter_thesis_project/beacon_loc_request.dart';
 import 'package:flutter_thesis_project/bluetooth.dart';
 import 'package:flutter_thesis_project/map.dart';
 import 'package:flutter_thesis_project/mqtt.dart';
+import 'package:flutter_thesis_project/navigation.dart';
 import 'package:flutter_thesis_project/permissions.dart';
 import 'package:flutter_thesis_project/search_bar.dart';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -190,14 +191,14 @@ class MainBody extends State<MainPage> {
             currentBeaconInfo.x, mapFloorIndex);
         var unifiedY = GeoScaledUnifiedMapper.getHeightPixel(
             currentBeaconInfo.y, mapFloorIndex);
-
+/* 
         var scaledUnifiedX = ImageRatioMapper.getWidthPixel(
             unifiedX, mapFloor[mapFloorIndex], mapFloorIndex);
         var scaledUnifiedY = ImageRatioMapper.getWidthPixel(
             unifiedY, mapFloor[mapFloorIndex], mapFloorIndex);
-
-        coordinateXValue = scaledUnifiedX;
-        coordinateYValue = scaledUnifiedY;
+  */
+        coordinateXValue = unifiedX;
+        coordinateYValue = unifiedY;
       }
     });
   }
@@ -288,29 +289,19 @@ class MainBody extends State<MainPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Container(
-                        width: 75.0,
-                        height: 75.0,
-                        decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 2.0,
-                            )),
-                        child: const Icon(
-                          Icons.arrow_downward,
-                          color: Colors.white,
-                          size: 48.0,
-                        ),
+                    NavigationArrow(
+                      x: coordinateXValue,
+                      y: coordinateYValue,
+                      selectedBeacon: selectedBeacon
                     ),
                     Container(
                         height: 30,
                         width: 100,
                         child: TextButton(
                           onPressed: () {},
-                          child: Text(
+                          child: const Text(
                             'Cancel',
-                            style: const TextStyle(color: Colors.blue),
+                            style: TextStyle(color: Colors.blue),
                           ),
                         )
                     )
