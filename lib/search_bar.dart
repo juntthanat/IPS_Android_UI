@@ -12,7 +12,8 @@ class AsyncAutocomplete extends StatefulWidget {
   Beacon selectedBeacon;
   EnableNavigate enableNavigate;
 
-  AsyncAutocomplete({super.key, required this.selectedBeacon, required this.enableNavigate});
+  AsyncAutocomplete(
+      {super.key, required this.selectedBeacon, required this.enableNavigate});
 
   @override
   State<AsyncAutocomplete> createState() => _AsyncAutocompleteState();
@@ -66,6 +67,7 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
           decoration: InputDecoration(
             errorText:
                 _networkError ? 'Network error, please try again.' : null,
+            contentPadding: EdgeInsets.all(20.0),
           ),
           controller: controller,
           focusNode: focusNode,
@@ -118,7 +120,7 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
         widget.selectedBeacon.name = selectedBeacon.name;
         widget.selectedBeacon.macAddress = selectedBeacon.macAddress;
         // END DANGER BLOCK
-        
+
         widget.enableNavigate.setState(true);
       },
     );
