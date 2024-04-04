@@ -72,21 +72,18 @@ class NavigationCancelButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Visibility(
-      visible: enableNavigate.getState(),
-      child: Container(
-          height: 30,
-          width: 100,
-          child: TextButton(
-            onPressed: () {
-              enableNavigate.setState(false);
-            },
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.blue),
-            ),
-          )
-      ),
+    return Container(
+        height: 30,
+        width: 100,
+        child: TextButton(
+          onPressed: () {
+            enableNavigate.setState(false);
+          },
+          child: const Text(
+            'Cancel',
+            style: TextStyle(color: Colors.blue),
+          ),
+        )
     );
   }
 }

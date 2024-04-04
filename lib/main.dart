@@ -283,30 +283,32 @@ class MainBody extends State<MainPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
-              Container(
-                height: screenConverter.getHeightPixel(0.15),
-                width: screenConverter.getWidthPixel(0.25),
-                color: Colors.grey[900],
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    NavigationArrow(
-                      x: coordinateXValue,
-                      y: coordinateYValue,
-                      selectedBeacon: selectedBeacon,
-                      enableNavigate: enableNavigate,
-                    ),
-                    NavigationCancelButton(enableNavigate: enableNavigate),
-                  ],
+              Visibility(
+                visible: enableNavigate.getState(),
+                child: Container(
+                  height: screenConverter.getHeightPixel(0.15),
+                  width: screenConverter.getWidthPixel(0.25),
+                  color: Colors.grey[900],
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      NavigationArrow(
+                        x: coordinateXValue,
+                        y: coordinateYValue,
+                        selectedBeacon: selectedBeacon,
+                        enableNavigate: enableNavigate,
+                      ),
+                      NavigationCancelButton(enableNavigate: enableNavigate),
+                    ],
+                  ),
                 ),
               ),
               Container(
                 // Header (Compass)
                 height: screenConverter
                     .getHeightPixel(0.15), // Header (Compass) Height
-                width: screenConverter
-                    .getWidthPixel(0.75), // Header (Compass) Width
+                width: enableNavigate.getState() ? screenConverter.getWidthPixel(0.75) : screenConverter.getWidthPixel(1.0), // Header (Compass) Width
                 color: Colors.grey[900],
                 child: Stack(
                   children: [
