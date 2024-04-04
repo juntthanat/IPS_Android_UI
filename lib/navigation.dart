@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
 
 class EnableNavigate {
-  bool enable = true;
+  bool enable = false;
 
   void setState(bool state) {
     enable = state;
@@ -72,18 +72,21 @@ class NavigationCancelButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        height: 30,
-        width: 100,
-        child: TextButton(
-          onPressed: () {
-            enableNavigate.setState(false);
-          },
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: Colors.blue),
-          ),
-        )
+    return Visibility(
+      visible: enableNavigate.getState(),
+      child: Container(
+          height: 30,
+          width: 100,
+          child: TextButton(
+            onPressed: () {
+              enableNavigate.setState(false);
+            },
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.blue),
+            ),
+          )
+      ),
     );
   }
 }
