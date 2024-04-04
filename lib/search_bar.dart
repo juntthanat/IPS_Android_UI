@@ -11,9 +11,10 @@ const Duration debounceDuration = Duration(milliseconds: 500);
 class AsyncAutocomplete extends StatefulWidget {
   Beacon selectedBeacon;
   EnableNavigate enableNavigate;
+  int mapFloorIndex;
 
   AsyncAutocomplete(
-      {super.key, required this.selectedBeacon, required this.enableNavigate});
+      {super.key, required this.selectedBeacon, required this.enableNavigate, required this.mapFloorIndex});
 
   @override
   State<AsyncAutocomplete> createState() => _AsyncAutocompleteState();
@@ -109,6 +110,22 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
             y: scaledUnifiedY,
             name: selectedGeoBeacon.name,
             macAddress: selectedGeoBeacon.macAddress);
+        
+        if (widget.mapFloorIndex != selectedGeoBeacon.getFloorIndex()) {
+          showDialog<String>(
+            context: context,
+            builder: (BuildContext context) => AlertDialog(
+              title: const Text('Wrong Floor'),
+              content: const Text('Your destination is on another floor!'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.pop(context, 'OK'),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
 
         // DO NOT MODIFY THE FOLLOWING 5 LINES (DANGER BLOCK) TO USE ASSIGNMENT INSTEAD OF THIS UGLY THING
         // REASON: THE PARENT COMPONENT WILL NOT ALLOW THE NEW VARIABLE TO BE ASSIGNED
