@@ -302,6 +302,17 @@ class MainBody extends State<MainPage> {
                           color: Colors.white,
                           size: 48.0,
                         ),
+                    ),
+                    Container(
+                        height: 30,
+                        width: 100,
+                        child: TextButton(
+                          onPressed: () {},
+                          child: Text(
+                            'Cancel',
+                            style: const TextStyle(color: Colors.blue),
+                          ),
+                        )
                     )
                   ],
                 ),
@@ -315,10 +326,6 @@ class MainBody extends State<MainPage> {
                 color: Colors.grey[900],
                 child: Stack(
                   children: [
-                    Text(
-                      "hello",
-                      style: const TextStyle(color: Colors.white),
-                    ),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
