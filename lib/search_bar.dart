@@ -63,11 +63,11 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
       fieldViewBuilder: (BuildContext context, TextEditingController controller,
           FocusNode focusNode, VoidCallback onFieldSubmitted) {
         return TextFormField(
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             errorText:
                 _networkError ? 'Network error, please try again.' : null,
-            contentPadding: EdgeInsets.all(20.0),
+            contentPadding: const EdgeInsets.all(20.0),
           ),
           controller: controller,
           focusNode: focusNode,
