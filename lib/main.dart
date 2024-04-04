@@ -308,9 +308,9 @@ class MainBody extends State<MainPage> {
                         width: 100,
                         child: TextButton(
                           onPressed: () {},
-                          child: Text(
+                          child: const Text(
                             'Cancel',
-                            style: const TextStyle(color: Colors.blue),
+                            style: TextStyle(color: Colors.blue),
                           ),
                         )
                     )
