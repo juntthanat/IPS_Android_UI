@@ -191,14 +191,14 @@ class MainBody extends State<MainPage> {
             currentBeaconInfo.x, mapFloorIndex);
         var unifiedY = GeoScaledUnifiedMapper.getHeightPixel(
             currentBeaconInfo.y, mapFloorIndex);
-
+/* 
         var scaledUnifiedX = ImageRatioMapper.getWidthPixel(
             unifiedX, mapFloor[mapFloorIndex], mapFloorIndex);
         var scaledUnifiedY = ImageRatioMapper.getWidthPixel(
             unifiedY, mapFloor[mapFloorIndex], mapFloorIndex);
- 
-        coordinateXValue = scaledUnifiedX;
-        coordinateYValue = scaledUnifiedY;
+  */
+        coordinateXValue = unifiedX;
+        coordinateYValue = unifiedY;
       }
     });
   }
