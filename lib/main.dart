@@ -85,6 +85,8 @@ class MainBody extends State<MainPage> {
 
   final GlobalKey<InteractiveMapState> _key = GlobalKey();
   late InteractiveMap interactiveMap;
+  
+  EnableNavigate enableNavigate = EnableNavigate();
 
   @override
   void dispose() {
@@ -292,19 +294,10 @@ class MainBody extends State<MainPage> {
                     NavigationArrow(
                       x: coordinateXValue,
                       y: coordinateYValue,
-                      selectedBeacon: selectedBeacon
+                      selectedBeacon: selectedBeacon,
+                      enableNavigate: enableNavigate,
                     ),
-                    Container(
-                        height: 30,
-                        width: 100,
-                        child: TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(color: Colors.blue),
-                          ),
-                        )
-                    )
+                    NavigationCancelButton(enableNavigate: enableNavigate),
                   ],
                 ),
               ),
@@ -338,7 +331,9 @@ class MainBody extends State<MainPage> {
                           children: [
                             Expanded(
                               child: AsyncAutocomplete(
-                                  selectedBeacon: selectedBeacon),
+                                  selectedBeacon: selectedBeacon,
+                                  enableNavigate: enableNavigate,
+                              ),
                             )
                           ],
                           /* // Start (Input X, Input Y, and reset button)

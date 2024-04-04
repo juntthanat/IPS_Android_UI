@@ -2,19 +2,33 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
 
+class EnableNavigate {
+  bool enable = true;
+
+  void setState(bool state) {
+    enable = state;
+  }
+  
+  bool getState() {
+    return enable;
+  }
+}
+
 class NavigationArrow extends StatelessWidget {
   double x, y;
   Beacon selectedBeacon;
+  EnableNavigate enableNavigate;
 
   NavigationArrow({
     super.key,
     required this.x,
     required this.y,
     required this.selectedBeacon,
+    required this.enableNavigate,
   });
 
   double getAngle() {
-    if (selectedBeacon.isEmpty()) {
+    if (selectedBeacon.isEmpty() || !enableNavigate.getState()) {
       return 0;
     }
 
@@ -47,3 +61,30 @@ class NavigationArrow extends StatelessWidget {
     );
   }
 }
+
+class NavigationCancelButton extends StatelessWidget {
+  EnableNavigate enableNavigate;
+
+  NavigationCancelButton({
+    super.key,
+    required this.enableNavigate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        height: 30,
+        width: 100,
+        child: TextButton(
+          onPressed: () {
+            enableNavigate.setState(false);
+          },
+          child: const Text(
+            'Cancel',
+            style: TextStyle(color: Colors.blue),
+          ),
+        )
+    );
+  }
+}
+
