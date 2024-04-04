@@ -85,6 +85,8 @@ class MainBody extends State<MainPage> {
 
   final GlobalKey<InteractiveMapState> _key = GlobalKey();
   late InteractiveMap interactiveMap;
+  
+  EnableNavigate enableNavigate = EnableNavigate();
 
   @override
   void dispose() {
@@ -281,39 +283,32 @@ class MainBody extends State<MainPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
-              Container(
-                height: screenConverter.getHeightPixel(0.15),
-                width: screenConverter.getWidthPixel(0.25),
-                color: Colors.grey[900],
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    NavigationArrow(
-                      x: coordinateXValue,
-                      y: coordinateYValue,
-                      selectedBeacon: selectedBeacon
-                    ),
-                    Container(
-                        height: 30,
-                        width: 100,
-                        child: TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(color: Colors.blue),
-                          ),
-                        )
-                    )
-                  ],
+              Visibility(
+                visible: enableNavigate.getState(),
+                child: Container(
+                  height: screenConverter.getHeightPixel(0.15),
+                  width: screenConverter.getWidthPixel(0.25),
+                  color: Colors.grey[900],
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      NavigationArrow(
+                        x: coordinateXValue,
+                        y: coordinateYValue,
+                        selectedBeacon: selectedBeacon,
+                        enableNavigate: enableNavigate,
+                      ),
+                      NavigationCancelButton(enableNavigate: enableNavigate),
+                    ],
+                  ),
                 ),
               ),
               Container(
                 // Header (Compass)
                 height: screenConverter
                     .getHeightPixel(0.15), // Header (Compass) Height
-                width: screenConverter
-                    .getWidthPixel(0.75), // Header (Compass) Width
+                width: enableNavigate.getState() ? screenConverter.getWidthPixel(0.75) : screenConverter.getWidthPixel(1.0), // Header (Compass) Width
                 color: Colors.grey[900],
                 child: Stack(
                   children: [
@@ -338,7 +333,9 @@ class MainBody extends State<MainPage> {
                           children: [
                             Expanded(
                               child: AsyncAutocomplete(
-                                  selectedBeacon: selectedBeacon),
+                                  selectedBeacon: selectedBeacon,
+                                  enableNavigate: enableNavigate,
+                              ),
                             )
                           ],
                           /* // Start (Input X, Input Y, and reset button)

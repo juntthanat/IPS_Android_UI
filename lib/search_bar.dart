@@ -3,14 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/beacon_loc_request.dart';
+import 'package:flutter_thesis_project/navigation.dart';
 import 'package:flutter_thesis_project/screensize_converter.dart';
 
 const Duration debounceDuration = Duration(milliseconds: 500);
 
 class AsyncAutocomplete extends StatefulWidget {
   Beacon selectedBeacon;
+  EnableNavigate enableNavigate;
 
-  AsyncAutocomplete({super.key, required this.selectedBeacon});
+  AsyncAutocomplete({super.key, required this.selectedBeacon, required this.enableNavigate});
 
   @override
   State<AsyncAutocomplete> createState() => _AsyncAutocompleteState();
@@ -116,6 +118,8 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
         widget.selectedBeacon.name = selectedBeacon.name;
         widget.selectedBeacon.macAddress = selectedBeacon.macAddress;
         // END DANGER BLOCK
+        
+        widget.enableNavigate.setState(true);
       },
     );
   }
