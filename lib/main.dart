@@ -347,6 +347,7 @@ class MainBody extends State<MainPage> {
                               child: AsyncAutocomplete(
                                   selectedBeacon: selectedBeacon,
                                   enableNavigate: enableNavigate,
+                                  mapFloorIndex: mapFloorIndex,
                               ),
                             )
                           ],
