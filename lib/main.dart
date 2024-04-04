@@ -151,6 +151,28 @@ class MainBody extends State<MainPage> {
         Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {
       bluetoothNotifier.clearOldDevices(LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC);
       fetchPosition();
+      
+      if (
+        !selectedBeacon.isEmpty() &&
+        enableNavigate.getState() &&
+        selectedBeacon.x.toInt() == coordinateXValue.toInt() &&
+        selectedBeacon.y.toInt() == coordinateYValue.toInt()
+      ) {
+        showDialog<String>(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+            title: const Text('Reached Destination'),
+            content: const Text('You\'ve Reached Your Destination!'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'OK'),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        enableNavigate.setState(false);
+      }
     });
 
     () async {
@@ -189,18 +211,8 @@ class MainBody extends State<MainPage> {
 
       if (!beaconInfo.isEmpty()) {
         // TODO: Properly Implement getFloor
-        var unifiedX = GeoScaledUnifiedMapper.getWidthPixel(
-            currentBeaconInfo.x, mapFloorIndex);
-        var unifiedY = GeoScaledUnifiedMapper.getHeightPixel(
-            currentBeaconInfo.y, mapFloorIndex);
-/* 
-        var scaledUnifiedX = ImageRatioMapper.getWidthPixel(
-            unifiedX, mapFloor[mapFloorIndex], mapFloorIndex);
-        var scaledUnifiedY = ImageRatioMapper.getWidthPixel(
-            unifiedY, mapFloor[mapFloorIndex], mapFloorIndex);
-  */
-        coordinateXValue = unifiedX;
-        coordinateYValue = unifiedY;
+        coordinateXValue = currentBeaconInfo.x;
+        coordinateYValue = currentBeaconInfo.y;
       }
     });
   }

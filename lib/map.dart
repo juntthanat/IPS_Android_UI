@@ -79,21 +79,6 @@ class InteractiveMapState extends State<InteractiveMap>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.selectedBeacon.x.toInt() == widget.coordinateXValue.toInt() && widget.selectedBeacon.y.toInt() == widget.coordinateYValue.toInt()) {
-      showDialog<String>(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(
-          title: const Text('Reached Destination'),
-          content: const Text('You\'ve Reached Your Destination!'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.pop(context, 'OK'),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    }
     return InteractiveViewer(
       transformationController: mapTransformationController,
       minScale: 0.1,
