@@ -297,24 +297,12 @@ class MainBody extends State<MainPage> {
                               color: Colors.white,
                               width: 2.0,
                             )),
-                        child: Padding(
-                            padding:
-                                EdgeInsets.fromLTRB(32.0, 16.0, 32.0, 16.0),
-                            child: 
-                            // Change to Icon Later Start
-                            Container(
-                              decoration: new BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.rectangle,
-                              ),
-                              child: Text(
-                                "^",
-                                style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w900),
-                              ),
-                            )
-                            // Change to Icon Later End
-                            ))
+                        child: const Icon(
+                          Icons.arrow_downward,
+                          color: Colors.white,
+                          size: 48.0,
+                        ),
+                    )
                   ],
                 ),
               ),
