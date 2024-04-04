@@ -31,7 +31,7 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
     try {
       final response = await fetchGeoBeaconsFromNameQuery(_currentQuery!);
       options = response.map((e) => e.name);
-    } catch(error) {
+    } catch (error) {
       if (error is _NetworkException) {
         setState(() {
           _networkError = true;
@@ -57,11 +57,10 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
   @override
   Widget build(BuildContext context) {
     return Autocomplete<String>(
-      fieldViewBuilder: (BuildContext context,
-          TextEditingController controller,
-          FocusNode focusNode,
-          VoidCallback onFieldSubmitted) {
+      fieldViewBuilder: (BuildContext context, TextEditingController controller,
+          FocusNode focusNode, VoidCallback onFieldSubmitted) {
         return TextFormField(
+          style: TextStyle(color: Colors.white),
           decoration: InputDecoration(
             errorText:
                 _networkError ? 'Network error, please try again.' : null,
@@ -87,18 +86,26 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
       },
       onSelected: (String selection) async {
         debugPrint('You just selected $selection');
-        var selectedGeoBeacon = await fetchGeoBeaconFromExactNameQuery(selection);
+        var selectedGeoBeacon =
+            await fetchGeoBeaconFromExactNameQuery(selection);
         if (selectedGeoBeacon.getFloorIndex() == -1) {
           return;
         }
 
-        var scaledUnifiedX = GeoScaledUnifiedMapper.getWidthPixel(selectedGeoBeacon.geoX, selectedGeoBeacon.getFloorIndex());
-        var scaledUnifiedY = GeoScaledUnifiedMapper.getHeightPixel(selectedGeoBeacon.geoY, selectedGeoBeacon.getFloorIndex());
+        var scaledUnifiedX = GeoScaledUnifiedMapper.getWidthPixel(
+            selectedGeoBeacon.geoX, selectedGeoBeacon.getFloorIndex());
+        var scaledUnifiedY = GeoScaledUnifiedMapper.getHeightPixel(
+            selectedGeoBeacon.geoY, selectedGeoBeacon.getFloorIndex());
 
         print("Scaled Unified X: $scaledUnifiedX Y: $scaledUnifiedY");
 
-        var selectedBeacon = Beacon(id: selectedGeoBeacon.id, x: scaledUnifiedX, y: scaledUnifiedY, name: selectedGeoBeacon.name, macAddress: selectedGeoBeacon.macAddress);
-        
+        var selectedBeacon = Beacon(
+            id: selectedGeoBeacon.id,
+            x: scaledUnifiedX,
+            y: scaledUnifiedY,
+            name: selectedGeoBeacon.name,
+            macAddress: selectedGeoBeacon.macAddress);
+
         // DO NOT MODIFY THE FOLLOWING 5 LINES (DANGER BLOCK) TO USE ASSIGNMENT INSTEAD OF THIS UGLY THING
         // REASON: THE PARENT COMPONENT WILL NOT ALLOW THE NEW VARIABLE TO BE ASSIGNED
 
