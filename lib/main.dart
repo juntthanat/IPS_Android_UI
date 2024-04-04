@@ -289,7 +289,11 @@ class MainBody extends State<MainPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    NavigationArrow(),
+                    NavigationArrow(
+                      x: coordinateXValue,
+                      y: coordinateYValue,
+                      selectedBeacon: selectedBeacon
+                    ),
                     Container(
                         height: 30,
                         width: 100,
