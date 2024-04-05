@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_compass/flutter_compass.dart';
@@ -14,6 +15,7 @@ import 'package:flutter_thesis_project/beacon_loc_request.dart';
 import 'package:flutter_thesis_project/bluetooth.dart';
 import 'package:flutter_thesis_project/map.dart';
 import 'package:flutter_thesis_project/mqtt.dart';
+import 'package:flutter_thesis_project/navigation.dart';
 import 'package:flutter_thesis_project/permissions.dart';
 import 'package:flutter_thesis_project/search_bar.dart';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -82,7 +84,9 @@ class MainBody extends State<MainPage> {
   Beacon selectedBeacon = Beacon.empty();
 
   final GlobalKey<InteractiveMapState> _key = GlobalKey();
-  late InteractiveMap interactiveMap;  
+  late InteractiveMap interactiveMap;
+  
+  EnableNavigate enableNavigate = EnableNavigate();
 
   @override
   void dispose() {
@@ -98,7 +102,7 @@ class MainBody extends State<MainPage> {
   void initState() {
     super.initState();
     initPermissionRequest();
-    
+
     interactiveMap = InteractiveMap(
       key: _key,
       coordinateXValue: coordinateXValue,
@@ -124,16 +128,20 @@ class MainBody extends State<MainPage> {
         .setScannerStatusStreamCallback(onBluetoothStatusChangeHandler);
     bluetoothNotifier.scan();
 
-    mqttHandler.setOnConnected(() => mqttHandler.subscribe("LOLICON/CALIBRATION/METHOD"));
+    mqttHandler.setOnConnected(
+        () => mqttHandler.subscribe("LOLICON/CALIBRATION/METHOD"));
     mqttHandler.connect();
     mqttHandler.setCallback((c) {
       final message = c[0].payload as MqttPublishMessage;
-      final payload = MqttPublishPayload.bytesToStringAsString(message.payload.message);
+      final payload =
+          MqttPublishPayload.bytesToStringAsString(message.payload.message);
 
       try {
         final payload_json = json.decode(payload) as Map<String, dynamic>;
-        bluetoothNotifier.setDeviceRssiDiff(payload_json['macAddress'], payload_json['diff']);
-        print('macAddress: ${payload_json['macAddress']}, RSSI: ${payload_json['rssi']}, diff: ${payload_json['diff']}');
+        bluetoothNotifier.setDeviceRssiDiff(
+            payload_json['macAddress'], payload_json['diff']);
+        print(
+            'macAddress: ${payload_json['macAddress']}, RSSI: ${payload_json['rssi']}, diff: ${payload_json['diff']}');
       } catch (e) {
         return;
       }
@@ -143,11 +151,34 @@ class MainBody extends State<MainPage> {
         Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {
       bluetoothNotifier.clearOldDevices(LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC);
       fetchPosition();
+      
+      if (
+        !selectedBeacon.isEmpty() &&
+        enableNavigate.getState() &&
+        selectedBeacon.x.toInt() == coordinateXValue.toInt() &&
+        selectedBeacon.y.toInt() == coordinateYValue.toInt()
+      ) {
+        showDialog<String>(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+            title: const Text('Reached Destination'),
+            content: const Text('You\'ve Reached Your Destination!'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'OK'),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        enableNavigate.setState(false);
+      }
     });
-    
+
     () async {
       FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(1);
-      List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(floorBeaconList.beaconList.map((e) => e.beaconId).toList(), 0);
+      List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(
+          floorBeaconList.beaconList.map((e) => e.beaconId).toList(), 0);
 
       beaconsToRender.clear();
       beaconsToRender.addAll(allBeaconsOfFloor);
@@ -171,7 +202,7 @@ class MainBody extends State<MainPage> {
 
     if (beaconInfo.isEmpty()) {
       print("Beacon not found in database");
-    } else  {
+    } else {
       beaconMap[bluetoothNotifier.nearestDevice.id] = beaconInfo;
     }
 
@@ -180,14 +211,8 @@ class MainBody extends State<MainPage> {
 
       if (!beaconInfo.isEmpty()) {
         // TODO: Properly Implement getFloor
-        var unifiedX = GeoScaledUnifiedMapper.getWidthPixel(currentBeaconInfo.x, mapFloorIndex);
-        var unifiedY = GeoScaledUnifiedMapper.getHeightPixel(currentBeaconInfo.y, mapFloorIndex);
-        
-        var scaledUnifiedX = ImageRatioMapper.getWidthPixel(unifiedX, mapFloor[mapFloorIndex], mapFloorIndex);
-        var scaledUnifiedY = ImageRatioMapper.getWidthPixel(unifiedY, mapFloor[mapFloorIndex], mapFloorIndex);
-
-        coordinateXValue = scaledUnifiedX;
-        coordinateYValue = scaledUnifiedY;
+        coordinateXValue = currentBeaconInfo.x;
+        coordinateYValue = currentBeaconInfo.y;
       }
     });
   }
@@ -269,115 +294,72 @@ class MainBody extends State<MainPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              // Header (Compass)
-              height: screenConverter
-                  .getHeightPixel(0.15), // Header (Compass) Height
-              width: screenConverter.getWidthPixel(1), // Header (Compass) Width
-              color: Colors.grey[900],
-              child: Stack(
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            Row(children: [
+              Visibility(
+                visible: enableNavigate.getState(),
+                child: Container(
+                  height: screenConverter.getHeightPixel(0.15),
+                  width: screenConverter.getWidthPixel(0.25),
+                  color: Colors.grey[900],
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // cadrantAngle(context, screenConverter, heading),
-                      Text(
-                        "(X: $coordinateXValue, Y: $coordinateYValue)",
-                        style: const TextStyle(color: Colors.white),
+                      NavigationArrow(
+                        x: coordinateXValue,
+                        y: coordinateYValue,
+                        selectedBeacon: selectedBeacon,
+                        enableNavigate: enableNavigate,
                       ),
+                      NavigationCancelButton(enableNavigate: enableNavigate),
                     ],
                   ),
-                  Positioned.fill(
-                    child: Container(
-                      alignment: Alignment.center,
-                      height: 100,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: AsyncAutocomplete(selectedBeacon: selectedBeacon),
-                          )
-                        ],
-                        /* // Start (Input X, Input Y, and reset button)
-                        children: [
-                          SizedBox(
-                            width: 100,
-                            child: TextField(
-                              onChanged: (inputX) {
-                                setState(() {
-                                  if (inputX == "" || inputX == "-") {
-                                    coordinateXValue = 0;
-                                  } else if (inputX[0] == "-") {
-                                    String nonNegativeString =
-                                        inputX.substring(1);
-                                    coordinateXValue =
-                                        -(double.parse(nonNegativeString));
-                                  } else {
-                                    coordinateXValue = double.parse(inputX);
-                                  }
-                                });
-                              },
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(),
-                                labelText: 'offsetX',
+                ),
+              ),
+              Container(
+                // Header (Compass)
+                height: screenConverter
+                    .getHeightPixel(0.15), // Header (Compass) Height
+                width: enableNavigate.getState() ? screenConverter.getWidthPixel(0.75) : screenConverter.getWidthPixel(1.0), // Header (Compass) Width
+                color: Colors.grey[900],
+                child: Stack(
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // cadrantAngle(context, screenConverter, heading),
+                        Text(
+                          "(X: $coordinateXValue, Y: $coordinateYValue)",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    Positioned.fill(
+                      child: Container(
+                        alignment: Alignment.center,
+                        height: 100,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: AsyncAutocomplete(
+                                  selectedBeacon: selectedBeacon,
+                                  enableNavigate: enableNavigate,
+                                  mapFloorIndex: mapFloorIndex,
                               ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 100,
-                            child: TextField(
-                              onChanged: (inputY) {
-                                setState(() {
-                                  if (inputY == "" || inputY == "-") {
-                                    coordinateXValue = 0;
-                                  } else if (inputY[0] == "-") {
-                                    String nonNegativeString =
-                                        inputY.substring(1);
-                                    coordinateYValue =
-                                        -(double.parse(nonNegativeString));
-                                  } else {
-                                    coordinateYValue = double.parse(inputY);
-                                  }
-                                });
-                              },
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(),
-                                labelText: 'offsetY',
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                              width: screenConverter.getWidthPixel(0.3),
-                              height: screenConverter.getHeightPixel(0.05),
-                              child: Container(
-                                alignment: Alignment.center,
-                                width: screenConverter.getWidthPixel(0.2),
-                                height: screenConverter.getHeightPixel(0.05),
-                                child: FloatingActionButton.extended(
-                                  onPressed: () {
-                                    // TODO: Proper Implementation
-                                    _key.currentState!.mapAnimationResetInitialize();
-                                  },
-                                  label: const Text("Reset"),
-                                ),
-                              )
                             )
-                        ],
+                          ],
+                          /* // Start (Input X, Input Y, and reset button)
                         // End (Input X, Input Y, and Reset Button) */
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ]),
             SizedBox(
               height: screenConverter.getHeightPixel(0.75),
               child: interactiveMap,
@@ -385,11 +367,13 @@ class MainBody extends State<MainPage> {
           ],
         ),
       ),
-      floatingActionButton: constructFloorSelectorFloatingActionBar(context, beaconsToRender),
+      floatingActionButton:
+          constructFloorSelectorFloatingActionBar(context, beaconsToRender),
     );
   }
 
-  Column constructFloorSelectorFloatingActionBar(BuildContext context, List<Beacon> beaconsToRender) {
+  Column constructFloorSelectorFloatingActionBar(
+      BuildContext context, List<Beacon> beaconsToRender) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -405,8 +389,14 @@ class MainBody extends State<MainPage> {
                   getCurrentMapFloorIndex() == 1 ? Colors.white : Colors.black,
               onPressed: () async {
                 setMapFloorByIndex(1);
-                FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(2);
-                List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(floorBeaconList.beaconList.map((e) => e.beaconId).toList(), 1);
+                FloorBeaconList floorBeaconList =
+                    await fetchAllFloorBeaconsByFloor(2);
+                List<Beacon> allBeaconsOfFloor =
+                    await fetchBeaconListFromIdList(
+                        floorBeaconList.beaconList
+                            .map((e) => e.beaconId)
+                            .toList(),
+                        1);
 
                 beaconsToRender.clear();
                 beaconsToRender.addAll(allBeaconsOfFloor);
@@ -438,8 +428,14 @@ class MainBody extends State<MainPage> {
                   getCurrentMapFloorIndex() == 0 ? Colors.white : Colors.black,
               onPressed: () async {
                 setMapFloorByIndex(0);
-                FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(1);
-                List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(floorBeaconList.beaconList.map((e) => e.beaconId).toList(), 0);
+                FloorBeaconList floorBeaconList =
+                    await fetchAllFloorBeaconsByFloor(1);
+                List<Beacon> allBeaconsOfFloor =
+                    await fetchBeaconListFromIdList(
+                        floorBeaconList.beaconList
+                            .map((e) => e.beaconId)
+                            .toList(),
+                        0);
 
                 beaconsToRender.clear();
                 beaconsToRender.addAll(allBeaconsOfFloor);
@@ -501,4 +497,3 @@ Column cadrantAngle(BuildContext context, screenConverter, heading) {
     ],
   );
 }
-

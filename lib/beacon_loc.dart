@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter_thesis_project/beacon_loc_request.dart';
+import 'package:flutter_thesis_project/screensize_converter.dart';
 import 'package:http/http.dart' as http;
 
 class Beacon {
@@ -16,16 +18,6 @@ class Beacon {
     required this.name,
     required this.macAddress
   });
-  
-  factory Beacon.fromJson(Map<String, dynamic> json) {
-    return Beacon(
-      id: json['id'],
-      x: json['x'],
-      y: json['y'],
-      name: json['name'],
-      macAddress: json['macAddress'],
-    );
-  }
   
   factory Beacon.empty() {
     return Beacon(id: -1, x: 0, y: 0, name: "", macAddress: "");
@@ -64,7 +56,7 @@ class Beacon {
 
 Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress) async {
   final formattedMacAddress = macAddress.replaceAll(":", "%3A");
-  final formattedUri = Uri.parse('http://159.223.40.229:8080/api/v1/beacon/macAddress?macAddress=$formattedMacAddress');
+  final formattedUri = Uri.parse('http://159.223.40.229:8080/api/v1/beacons/macAddress/$formattedMacAddress');
   
   try {
     print("Requesting...");
@@ -72,7 +64,15 @@ Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress) async {
   
     if (response.statusCode == 200) {
       print(response.body);
-      return Beacon.fromJson(jsonDecode(response.body));
+      var geoBeacon = GeoBeacon.fromJson(jsonDecode(response.body));
+      var beacon = Beacon(
+        id: geoBeacon.id,
+        x: GeoScaledUnifiedMapper.getWidthPixel(geoBeacon.geoX, geoBeacon.getFloorIndex()),
+        y: GeoScaledUnifiedMapper.getHeightPixel(geoBeacon.geoY, geoBeacon.getFloorIndex()),
+        name: geoBeacon.name,
+        macAddress: geoBeacon.macAddress
+      );
+      return beacon;
     } else {
       //throw Exception("Failed to fetch Location of said beacon");
     }

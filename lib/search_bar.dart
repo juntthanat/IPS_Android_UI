@@ -3,14 +3,18 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/beacon_loc_request.dart';
+import 'package:flutter_thesis_project/navigation.dart';
 import 'package:flutter_thesis_project/screensize_converter.dart';
 
 const Duration debounceDuration = Duration(milliseconds: 500);
 
 class AsyncAutocomplete extends StatefulWidget {
   Beacon selectedBeacon;
+  EnableNavigate enableNavigate;
+  int mapFloorIndex;
 
-  AsyncAutocomplete({super.key, required this.selectedBeacon});
+  AsyncAutocomplete(
+      {super.key, required this.selectedBeacon, required this.enableNavigate, required this.mapFloorIndex});
 
   @override
   State<AsyncAutocomplete> createState() => _AsyncAutocompleteState();
@@ -31,7 +35,7 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
     try {
       final response = await fetchGeoBeaconsFromNameQuery(_currentQuery!);
       options = response.map((e) => e.name);
-    } catch(error) {
+    } catch (error) {
       if (error is _NetworkException) {
         setState(() {
           _networkError = true;
@@ -57,14 +61,14 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
   @override
   Widget build(BuildContext context) {
     return Autocomplete<String>(
-      fieldViewBuilder: (BuildContext context,
-          TextEditingController controller,
-          FocusNode focusNode,
-          VoidCallback onFieldSubmitted) {
+      fieldViewBuilder: (BuildContext context, TextEditingController controller,
+          FocusNode focusNode, VoidCallback onFieldSubmitted) {
         return TextFormField(
+          style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             errorText:
                 _networkError ? 'Network error, please try again.' : null,
+            contentPadding: const EdgeInsets.all(20.0),
           ),
           controller: controller,
           focusNode: focusNode,
@@ -87,18 +91,42 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
       },
       onSelected: (String selection) async {
         debugPrint('You just selected $selection');
-        var selectedGeoBeacon = await fetchGeoBeaconFromExactNameQuery(selection);
+        var selectedGeoBeacon =
+            await fetchGeoBeaconFromExactNameQuery(selection);
         if (selectedGeoBeacon.getFloorIndex() == -1) {
           return;
         }
 
-        var scaledUnifiedX = GeoScaledUnifiedMapper.getWidthPixel(selectedGeoBeacon.geoX, selectedGeoBeacon.getFloorIndex());
-        var scaledUnifiedY = GeoScaledUnifiedMapper.getHeightPixel(selectedGeoBeacon.geoY, selectedGeoBeacon.getFloorIndex());
+        var scaledUnifiedX = GeoScaledUnifiedMapper.getWidthPixel(
+            selectedGeoBeacon.geoX, selectedGeoBeacon.getFloorIndex());
+        var scaledUnifiedY = GeoScaledUnifiedMapper.getHeightPixel(
+            selectedGeoBeacon.geoY, selectedGeoBeacon.getFloorIndex());
 
         print("Scaled Unified X: $scaledUnifiedX Y: $scaledUnifiedY");
 
-        var selectedBeacon = Beacon(id: selectedGeoBeacon.id, x: scaledUnifiedX, y: scaledUnifiedY, name: selectedGeoBeacon.name, macAddress: selectedGeoBeacon.macAddress);
+        var selectedBeacon = Beacon(
+            id: selectedGeoBeacon.id,
+            x: scaledUnifiedX,
+            y: scaledUnifiedY,
+            name: selectedGeoBeacon.name,
+            macAddress: selectedGeoBeacon.macAddress);
         
+        if (widget.mapFloorIndex != selectedGeoBeacon.getFloorIndex()) {
+          showDialog<String>(
+            context: context,
+            builder: (BuildContext context) => AlertDialog(
+              title: const Text('Wrong Floor'),
+              content: const Text('Your destination is on another floor!'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.pop(context, 'OK'),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+
         // DO NOT MODIFY THE FOLLOWING 5 LINES (DANGER BLOCK) TO USE ASSIGNMENT INSTEAD OF THIS UGLY THING
         // REASON: THE PARENT COMPONENT WILL NOT ALLOW THE NEW VARIABLE TO BE ASSIGNED
 
@@ -109,6 +137,8 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
         widget.selectedBeacon.name = selectedBeacon.name;
         widget.selectedBeacon.macAddress = selectedBeacon.macAddress;
         // END DANGER BLOCK
+
+        widget.enableNavigate.setState(true);
       },
     );
   }
