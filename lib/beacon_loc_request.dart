@@ -29,11 +29,11 @@ class GeoBeacon {
     return false;
   }
 
-  int getFloorIndex() {
+  int getFloorId() {
     if (name.contains("ECC7")) {
-      return 0;
-    } else if (name.contains("ECC8")) {
       return 1;
+    } else if (name.contains("ECC8")) {
+      return 2;
     }
     
     print("Name does not contain floor's information");
@@ -57,14 +57,14 @@ class GeoBeaconList {
     return GeoBeaconList(geoBeaconList: tempGeoBeaconList);
   }
   
-  List<Beacon> getBeacons(int mapFloorIndex) {
+  List<Beacon> getBeacons(GeoScaledUnifiedMapper geoScaledUnifiedMapper, int floorId) {
     List<Beacon> result = List.empty(growable: true);
 
     geoBeaconList.forEach((element) {
       var tempBeacon = Beacon(
         id: element.id,
-        x: GeoScaledUnifiedMapper.getWidthPixel(element.geoX, mapFloorIndex),
-        y: GeoScaledUnifiedMapper.getHeightPixel(element.geoY, mapFloorIndex),
+        x: geoScaledUnifiedMapper.getWidthPixel(element.geoX, floorId),
+        y: geoScaledUnifiedMapper.getHeightPixel(element.geoY, floorId),
         name: element.name,
         macAddress: element.macAddress
       );
@@ -107,11 +107,11 @@ class FloorBeaconList {
   }
 }
 
-Future<FloorBeaconList> fetchAllFloorBeaconsByFloor(int mapFloorNumber) async {
+Future<FloorBeaconList> fetchAllFloorBeaconsByFloor(int floorId) async {
   const base_uri = 'http://159.223.40.229:8080/api/v1';
 
   try {
-    var uri = Uri.parse("$base_uri/floor-beacons/floorId/$mapFloorNumber");
+    var uri = Uri.parse("$base_uri/floor-beacons/floorId/$floorId");
     final response = await http.get(uri);
   
     if (response.statusCode == 200) {
@@ -127,7 +127,7 @@ Future<FloorBeaconList> fetchAllFloorBeaconsByFloor(int mapFloorNumber) async {
   return FloorBeaconList.empty();
 }
 
-Future<List<Beacon>> fetchBeaconListFromIdList(List<int> idList, int mapFloorIndex) async {
+Future<List<Beacon>> fetchBeaconListFromIdList(List<int> idList, GeoScaledUnifiedMapper geoScaledUnifiedMapper, int floorId) async {
   const base_uri = 'http://159.223.40.229:8080/api/v1/beacons/beacon-id-list';
   final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
   Map<String, List<int>> http_param = { "beaconIdList": idList };
@@ -138,7 +138,7 @@ Future<List<Beacon>> fetchBeaconListFromIdList(List<int> idList, int mapFloorInd
   
     if (response.statusCode == 200) {
 	    var geoBeaconList = GeoBeaconList.fromJson(jsonDecode(response.body));
-      return geoBeaconList.getBeacons(mapFloorIndex);
+      return geoBeaconList.getBeacons(geoScaledUnifiedMapper, floorId);
     } else {
       //throw Exception("Failed to fetch Location of said beacon");
     }

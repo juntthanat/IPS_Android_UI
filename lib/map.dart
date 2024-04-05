@@ -122,7 +122,7 @@ class InteractiveMapState extends State<InteractiveMap>
                     coordinateYValue: widget.coordinateYValue,
                     imageRatioMapper: widget.imageRatioMapper,
                     floorId: widget.currentFloorId,
-                    visible: widget.currentFloorId == beacon.getFloorIndex(),
+                    visible: widget.currentFloorId == beacon.getFloorId(),
                     selected: !widget.selectedBeacon.isEmpty() &&
                         (widget.selectedBeacon.macAddress.toLowerCase() ==
                             beacon.macAddress.toLowerCase()),

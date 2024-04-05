@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/beacon_loc_request.dart';
+import 'package:flutter_thesis_project/screensize_converter.dart';
 
 class SelectedFloor {
   int id;
@@ -26,18 +27,20 @@ enum FloorState {
 }
 
 class FloorSelectorButton extends StatefulWidget {
-  String floorName;
-  int floorId;
-  SelectedFloor currentlySelectedFloor;
-  List<Beacon> beaconsToRender;
-  FloorState floorState;
+  final String floorName;
+  final int floorId;
+  final SelectedFloor currentlySelectedFloor;
+  final List<Beacon> beaconsToRender;
+  final FloorState floorState;
+  final GeoScaledUnifiedMapper geoScaledUnifiedMapper;
 
-  FloorSelectorButton({
+  const FloorSelectorButton({
     super.key,
     required this.floorName,
     required this.floorId,
     required this.currentlySelectedFloor,
     required this.beaconsToRender,
+    required this.geoScaledUnifiedMapper,
     this.floorState = FloorState.normal,
   });
 
@@ -83,15 +86,17 @@ class _FloorSelectorButtonState extends State<FloorSelectorButton> {
           onPressed: () async {
             widget.currentlySelectedFloor.setId(widget.floorId);
             FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(widget.floorId);
-            List<Beacon> allBeaconsOfFloor =
-                await fetchBeaconListFromIdList(
-                    floorBeaconList.beaconList
-                        .map((e) => e.beaconId)
-                        .toList(),
-                    1);
+            List<int> floorBeaconIdList = floorBeaconList.beaconList
+              .map((e) => e.beaconId)
+              .toList();
+            List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(
+              floorBeaconIdList,
+              widget.geoScaledUnifiedMapper,
+              widget.floorId
+            );
 
-            beaconsToRender.clear();
-            beaconsToRender.addAll(allBeaconsOfFloor);
+            widget.beaconsToRender.clear();
+            widget.beaconsToRender.addAll(allBeaconsOfFloor);
           },
           shape: getBorderShape(),
           child: Text(

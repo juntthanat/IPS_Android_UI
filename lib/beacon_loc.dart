@@ -43,18 +43,18 @@ class Beacon {
     return -1;
   }
   
-  int getFloorIndex() {
+  int getFloorId() {
     if (name.contains("ECC7")) {
-      return 0;
-    } else if (name.contains("ECC8")) {
       return 1;
+    } else if (name.contains("ECC8")) {
+      return 2;
     }
     
     return -1;
   }
 }
 
-Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress) async {
+Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress, GeoScaledUnifiedMapper geoScaledUnifiedMapper) async {
   final formattedMacAddress = macAddress.replaceAll(":", "%3A");
   final formattedUri = Uri.parse('http://159.223.40.229:8080/api/v1/beacons/macAddress/$formattedMacAddress');
   
@@ -67,8 +67,8 @@ Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress) async {
       var geoBeacon = GeoBeacon.fromJson(jsonDecode(response.body));
       var beacon = Beacon(
         id: geoBeacon.id,
-        x: GeoScaledUnifiedMapper.getWidthPixel(geoBeacon.geoX, geoBeacon.getFloorIndex()),
-        y: GeoScaledUnifiedMapper.getHeightPixel(geoBeacon.geoY, geoBeacon.getFloorIndex()),
+        x: geoScaledUnifiedMapper.getWidthPixel(geoBeacon.geoX, geoBeacon.getFloorId()),
+        y: geoScaledUnifiedMapper.getHeightPixel(geoBeacon.geoY, geoBeacon.getFloorId()),
         name: geoBeacon.name,
         macAddress: geoBeacon.macAddress
       );
