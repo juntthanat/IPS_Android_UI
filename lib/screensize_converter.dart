@@ -15,16 +15,19 @@ class InvalidFloorId implements Exception {
   const InvalidFloorId();
 }
 
-class GeoScaledUnifiedMapper {
+class CoordinateMapper {
   HashMap<int, MapDimension> mapDimensions;
-
-  GeoScaledUnifiedMapper({
-    required this.mapDimensions,
-  });
   
+  CoordinateMapper(this.mapDimensions);
+
   void addMapDimensionInfo(int floorId, MapDimension mapDimension) {
     mapDimensions[floorId] = mapDimension;
   }
+}
+
+class GeoScaledUnifiedMapper extends CoordinateMapper {
+
+  GeoScaledUnifiedMapper(HashMap<int, MapDimension> mapDimensions) : super(mapDimensions);
 
   double getWidthPixel(double geoX, int floorId) {
     MapDimension? mapDimension = mapDimensions[floorId];
@@ -49,26 +52,41 @@ class GeoScaledUnifiedMapper {
   }
 }
 
-class ImageRatioMapper {
-  // TODO: Find a way to use requests or something
-  static const mapFloorDimension = [
-    (2758.0, 5121.0),
-    (2760.0, 5228.0)
-  ];
+class ImageRatioMapper extends CoordinateMapper {
 
-  static double getHeightPixel(double unscaledMapPixel, Image asset, int mapFloorIndex) {
-    double renderedHeight = asset.height ?? 1;
-    double heightScaleRatio = mapFloorDimension[mapFloorIndex].$2 / renderedHeight;
+  HashMap<int, Image> floorImages;
+
+  ImageRatioMapper(
+    HashMap<int, MapDimension> mapDimensions,
+    this.floorImages,
+  ) : super(mapDimensions);
+
+  double getHeightPixel(double unscaledMapPixel, int floorId) {
+    Image? renderedImage = floorImages[floorId];
+    MapDimension? mapDimension = mapDimensions[floorId];
+
+    if (renderedImage == null || mapDimension == null) {
+      throw const InvalidFloorId();
+    }
     
+    double renderedHeight = renderedImage.height ?? 1;
+    double heightScaleRatio = mapDimension.trueHeight / renderedHeight;
     return unscaledMapPixel / heightScaleRatio;
   }
   
-  static double getWidthPixel(double unscaledMapPixel, Image asset, int mapFloorIndex) {
-    double renderedWidth = asset.width ?? 1;   
-    double widthScaleRatio = mapFloorDimension[mapFloorIndex].$1 / renderedWidth;
+  double getWidthPixel(double unscaledMapPixel, int floorId) {
+    Image? renderedImage = floorImages[floorId];
+    MapDimension? mapDimension = mapDimensions[floorId];
 
+    if (renderedImage == null || mapDimension == null) {
+      throw const InvalidFloorId();
+    }
+
+    double renderedWidth = renderedImage.width ?? 1;   
+    double widthScaleRatio = mapDimension.trueWidth / renderedWidth;
     return unscaledMapPixel / widthScaleRatio;
   }
+
 }
 
 class DevicePixelMapper {
