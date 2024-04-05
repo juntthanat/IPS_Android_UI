@@ -125,6 +125,7 @@ class MainBody extends State<MainPage> {
       currentBeaconInfo: currentBeaconInfo,
       beaconsToRender: beaconsToRender,
       selectedBeacon: selectedBeacon,
+      enableNavigate: enableNavigate,
       imageRatioMapper: imageRatioMapper,
     );
 
@@ -288,6 +289,7 @@ class MainBody extends State<MainPage> {
       currentBeaconInfo: currentBeaconInfo,
       beaconsToRender: beaconsToRender,
       selectedBeacon: selectedBeacon,
+      enableNavigate: enableNavigate,
       imageRatioMapper: imageRatioMapper,
     );
     return Scaffold(

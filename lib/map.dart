@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
+import 'package:flutter_thesis_project/navigation.dart';
 import 'package:flutter_thesis_project/screensize_converter.dart';
 
 class InteractiveMap extends StatefulWidget {
@@ -12,6 +13,7 @@ class InteractiveMap extends StatefulWidget {
   final HashMap<int, Image> floorImages;
   final int currentFloorId;
   final Beacon selectedBeacon;
+  final EnableNavigate enableNavigate;
 
   const InteractiveMap(
       {required Key key,
@@ -22,6 +24,7 @@ class InteractiveMap extends StatefulWidget {
       required this.currentBeaconInfo,
       required this.beaconsToRender,
       required this.imageRatioMapper,
+      required this.enableNavigate,
       required this.selectedBeacon})
       : super(key: key);
 
@@ -124,6 +127,7 @@ class InteractiveMapState extends State<InteractiveMap>
                     floorId: widget.currentFloorId,
                     visible: widget.currentFloorId == beacon.getFloorId(),
                     selected: !widget.selectedBeacon.isEmpty() &&
+                        widget.enableNavigate.getState() &&
                         (widget.selectedBeacon.macAddress.toLowerCase() ==
                             beacon.macAddress.toLowerCase()),
                   )
