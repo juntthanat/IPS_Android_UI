@@ -11,8 +11,9 @@ class GeoBeacon {
   final double geoX;
   final double geoY;
   final String macAddress;
+  int? floorId;
 
-  GeoBeacon({required this.id, required this.name, required this.geoX, required this.geoY, required this.macAddress});
+  GeoBeacon({required this.id, required this.name, required this.geoX, required this.geoY, required this.macAddress, this.floorId});
   
   factory GeoBeacon.empty() {
     return GeoBeacon(id: -1, name: "", geoX: 0, geoY: 0, macAddress: "");
@@ -28,16 +29,13 @@ class GeoBeacon {
     }
     return false;
   }
+  
+  void setFloorId(int floorId) {
+    this.floorId = floorId;
+  }
 
   int getFloorId() {
-    if (name.contains("ECC7")) {
-      return 1;
-    } else if (name.contains("ECC8")) {
-      return 2;
-    }
-    
-    print("Name does not contain floor's information");
-    return -1;
+    return floorId ?? -1;
   }
 }
 
@@ -66,7 +64,8 @@ class GeoBeaconList {
         x: geoScaledUnifiedMapper.getWidthPixel(element.geoX, floorId),
         y: geoScaledUnifiedMapper.getHeightPixel(element.geoY, floorId),
         name: element.name,
-        macAddress: element.macAddress
+        macAddress: element.macAddress,
+        floorId: floorId
       );
       
       result.add(tempBeacon);
@@ -177,13 +176,14 @@ Future<GeoBeacon> fetchGeoBeaconFromExactNameQuery(String name) async {
   const base_uri = '159.223.40.229:8080';
   final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
   Map<String, String> http_param = { "name": name };
+  var geoBeacon = GeoBeacon.empty();
 
   try {
     var uri = Uri.http(base_uri, "/api/v1/beacons/exact-string-query", http_param);
     final response = await http.get(uri, headers: headers);
   
     if (response.statusCode == 200) {
-	    return GeoBeacon.fromJson(jsonDecode(response.body));
+	    geoBeacon = GeoBeacon.fromJson(jsonDecode(response.body));
     } else {
       //throw Exception("Failed to fetch Location of said beacon");
     }
@@ -192,7 +192,23 @@ Future<GeoBeacon> fetchGeoBeaconFromExactNameQuery(String name) async {
     print(e);
   }
   
-  return GeoBeacon.empty();
+  try {
+    if (geoBeacon.isEmpty()) {
+      return geoBeacon;
+    }
+
+    var uri = Uri.http(base_uri, "/api/v1/floor-beacons/beaconId/${geoBeacon.id}");
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      geoBeacon.setFloorId(jsonDecode(response.body)["floorId"]);
+    }
+  } on Exception catch(e) {
+    print("Failed to fetch Beacon's Floor Info");
+    print(e);
+  }
+  
+  return geoBeacon;
 }
 
 Future<FloorBeaconList> fetchFloorBeaconListFromIdList(List<int> idList) async {

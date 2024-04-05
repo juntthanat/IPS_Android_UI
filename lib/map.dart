@@ -109,8 +109,8 @@ class InteractiveMapState extends State<InteractiveMap>
 
                 // Renders the user's position pin on the map
                 UserPositionPin(
-                  mapFloorIndex: widget.currentFloorId,
-                  currentFloor: widget.currentBeaconInfo.getFloor(),
+                  currentlySelectedFloorId: widget.currentFloorId,
+                  currentPositionFloorId: widget.currentBeaconInfo.getFloorId(),
                 ),
 
                 // Iterates through the list of beacons to render, then create objects to render them
@@ -167,32 +167,27 @@ class MapImage extends StatelessWidget {
 
 class UserPositionPin extends StatelessWidget {
   final ScreenSizeConverter screenConverter = ScreenSizeConverter();
-  final int mapFloorIndex;
-  final int currentFloor;
+  final int currentlySelectedFloorId;
+  final int currentPositionFloorId;
 
   UserPositionPin(
-      {super.key, required this.mapFloorIndex, required this.currentFloor});
+      {super.key, required this.currentlySelectedFloorId, required this.currentPositionFloorId});
 
   @override
   Widget build(BuildContext context) {
     return Visibility(
-      // TODO: REVERT
-      // visible: mapFloorIndex == 0 && currentFloor == 7 || mapFloorIndex == 1 && currentFloor == 8,
+      // visible: currentlySelectedFloorId == currentPositionFloorId,
+      // TODO: Proper Implementation
       visible: true,
       child: SizedBox(
         height: screenConverter.getHeightPixel(0.75),
         width: screenConverter.getWidthPixel(1.0),
         child: Center(
           child: Container(
-            // TODO: REVERT
             height: 24,
             width: 24,
-            // height: 10,
-            // width: 10,
             decoration: const BoxDecoration(
               color: Color.fromRGBO(255, 77, 0, 1),
-              // shape: BoxShape.rectangle,
-              // TODO: REVERT
               shape: BoxShape.circle,
             ),
           ),

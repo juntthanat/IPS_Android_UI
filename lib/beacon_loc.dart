@@ -10,17 +10,23 @@ class Beacon {
   double y;
   String name;
   String macAddress;
+  int? floorId;
 
   Beacon({
     required this.id,
     required this.x,
     required this.y,
     required this.name,
-    required this.macAddress
+    required this.macAddress,
+    this.floorId
   });
   
   factory Beacon.empty() {
     return Beacon(id: -1, x: 0, y: 0, name: "", macAddress: "");
+  }
+  
+  void setFloorId(int floorId) {
+    this.floorId = floorId;
   }
   
   bool isEmpty() {
@@ -31,26 +37,8 @@ class Beacon {
     return false;
   }
   
-  int getFloor() {
-    if (name.contains("ECC7") || name == "7") {
-      return 7;
-    } else if (name.contains("ECC8") || name == "8") {
-      return 8;
-    } else if (name.contains("ECC9") || name == "9") {
-      return 9;
-    }
-    
-    return -1;
-  }
-  
   int getFloorId() {
-    if (name.contains("ECC7")) {
-      return 1;
-    } else if (name.contains("ECC8")) {
-      return 2;
-    }
-    
-    return -1;
+    return floorId ?? -1;
   }
 }
 
