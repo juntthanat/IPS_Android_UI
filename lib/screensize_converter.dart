@@ -1,28 +1,51 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 
-class MapDimensions {
+class MapDimension {
   final double geoWidth;
   final double geoHeight;
   final double trueWidth;
   final double trueHeight;
 
-  const MapDimensions(this.geoWidth, this.geoHeight, this.trueWidth, this.trueHeight); 
+  const MapDimension(this.geoWidth, this.geoHeight, this.trueWidth, this.trueHeight); 
+}
+
+class InvalidFloorId implements Exception {
+  const InvalidFloorId();
 }
 
 class GeoScaledUnifiedMapper {
-  static const map_dimensions = [
-    MapDimensions(39.6, 73.6, 2758.0, 5121.0),
-    MapDimensions(37.4, 73.4, 2760.0, 5228.0), // 8th floor
-  ];
+  HashMap<int, MapDimension> mapDimensions;
 
-  static double getWidthPixel(double geoX, int mapFloorIndex) {
-    var widthScale = map_dimensions[mapFloorIndex].trueWidth / map_dimensions[mapFloorIndex].geoWidth;
-    return (geoX * widthScale) - (map_dimensions[mapFloorIndex].trueWidth / 2);
+  GeoScaledUnifiedMapper({
+    required this.mapDimensions,
+  });
+  
+  void addMapDimensionInfo(int floorId, MapDimension mapDimension) {
+    mapDimensions[floorId] = mapDimension;
+  }
+
+  double getWidthPixel(double geoX, int floorId) {
+    MapDimension? mapDimension = mapDimensions[floorId];
+
+    if (mapDimension == null) {
+      throw const InvalidFloorId();
+    }
+
+    var widthScale = mapDimension.trueWidth / mapDimension.geoWidth;
+    return (geoX * widthScale) - (mapDimension.trueWidth / 2);
   }
   
-  static double getHeightPixel(double geoY, int mapFloorIndex) {
-    var heightScale = map_dimensions[mapFloorIndex].trueHeight / map_dimensions[mapFloorIndex].geoHeight;
-    return (-1 * (geoY * heightScale)) + (map_dimensions[mapFloorIndex].trueHeight / 2);
+  double getHeightPixel(double geoY, int floorId) {
+    MapDimension? mapDimension = mapDimensions[floorId];
+
+    if (mapDimension == null) {
+      throw const InvalidFloorId();
+    }
+
+    var heightScale = mapDimension.trueHeight / mapDimension.geoHeight;
+    return (-1 * (geoY * heightScale)) + (mapDimension.trueHeight / 2);
   }
 }
 
