@@ -113,13 +113,15 @@ class FloorInfo {
   final double geoLength;
   final double geoWidth;
   final double azimuth;
+  final int level;
 
   const FloorInfo({
     required this.floorId,
     required this.name,
     required this.geoLength,
     required this.geoWidth,
-    required this.azimuth
+    required this.azimuth,
+    required this.level
   });
 }
 
@@ -210,7 +212,8 @@ Future<HashMap<int, FloorInfo>> fetchAllFloors() async {
           name: element["name"],
           geoLength: element["geoLength"],
           geoWidth: element["geoWidth"],
-          azimuth: element["azimuth"]
+          azimuth: element["azimuth"],
+          level: element["level"]
         );
         floorInfoList[floorInfo.floorId] = floorInfo;
       });
