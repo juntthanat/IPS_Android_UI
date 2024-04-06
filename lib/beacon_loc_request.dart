@@ -193,6 +193,18 @@ class FloorFileDimensionAndLinkList {
   }
 }
 
+class BasicFloorInfo {
+  int floorId;
+  int floorLevel;
+  String name;
+
+  BasicFloorInfo({
+    required this.floorId,
+    required this.floorLevel,
+    required this.name,
+  });
+}
+
 Future<HashMap<int, FloorInfo>> fetchAllFloors() async {
   const base_uri = 'http://159.223.40.229:8080/api/v1';
   

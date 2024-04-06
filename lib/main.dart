@@ -61,6 +61,7 @@ class MainBody extends State<MainPage> {
 
   HashMap<int, Image> floorImages = HashMap();
   HashMap<int, MapDimension> floorDimensions = HashMap();
+  List<BasicFloorInfo> basicFloorInfoList = List.empty(growable: true);
 
   SelectedFloor selectedFloor = SelectedFloor(id: 1);
   Timer? refreshTimer;
@@ -119,6 +120,10 @@ class MainBody extends State<MainPage> {
           width: screenConverter.getWidthPixel(0.75),
         );
         floorDimensions[element.floorId] = floorMapDimension;
+
+        // Populate Basic Floor Info List for Floating action button rendering
+        var tempBasicFloorInfo = BasicFloorInfo(floorId: tempFloorFileInfo.floorId, floorLevel: tempFloorFileInfo.level, name: tempFloorFileInfo.name);
+        basicFloorInfoList.add(tempBasicFloorInfo);
       }
       
       // Populate the beaconsToRender List
@@ -395,26 +400,22 @@ class MainBody extends State<MainPage> {
   }
 
   Column constructFloorSelectorFloatingActionBar(
-      BuildContext context, List<Beacon> beaconsToRender) {
+      BuildContext context,
+      List<Beacon> beaconsToRender
+  ) {
+    basicFloorInfoList.sort((a, b) => b.floorLevel.compareTo(a.floorLevel));
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        FloorSelectorButton(
-          floorName: "8F",
-          floorId: 2,
-          currentlySelectedFloor: selectedFloor,
-          beaconsToRender: beaconsToRender,
-          geoScaledUnifiedMapper: geoScaledUnifiedMapper,
-          floorState: FloorState.top,
-        ),
-        FloorSelectorButton(
-          floorName: "7F",
-          floorId: 1,
-          currentlySelectedFloor: selectedFloor,
-          beaconsToRender: beaconsToRender,
-          geoScaledUnifiedMapper: geoScaledUnifiedMapper,
-          floorState: FloorState.bottom,
-        )
+        for (var basicFloorInfo in basicFloorInfoList)
+          FloorSelectorButton(
+            floorName: basicFloorInfo.floorLevel.toString(),
+            floorId: basicFloorInfo.floorId,
+            currentlySelectedFloor: selectedFloor,
+            beaconsToRender: beaconsToRender,
+            geoScaledUnifiedMapper: geoScaledUnifiedMapper,
+            floorState: basicFloorInfo == basicFloorInfoList[0] ? FloorState.top : basicFloorInfo == basicFloorInfoList[basicFloorInfoList.length - 1] ? FloorState.bottom : FloorState.normal,
+          )
       ],
     );
   }
