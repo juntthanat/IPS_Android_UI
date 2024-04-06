@@ -95,6 +95,7 @@ class MainBody extends State<MainPage> {
     initPermissionRequest();
    
     () async {
+      // Getting Floor Images and Dimensions
       List<FloorFileInfo> fileInfo = await fetchAllFileInfo();
       HashMap<int, FloorInfo> floorInfo = await fetchAllFloors();
       HashMap<int, FloorFileDimensionAndLink> fileImageLink = await fetchAllFloorFileDimensionAndLink();
@@ -122,6 +123,17 @@ class MainBody extends State<MainPage> {
         );
         floorDimensions[element.floorId] = floorMapDimension;
       }
+      
+      // Populate the beaconsToRender List
+      FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(selectedFloor.getId());
+      List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(
+        floorBeaconList.beaconList.map((e) => e.beaconId).toList(),
+        geoScaledUnifiedMapper,
+        selectedFloor.getId()
+      );
+
+      beaconsToRender.clear();
+      beaconsToRender.addAll(allBeaconsOfFloor);
     }.call();
     
     // Initialize the Coordinate Mappers
@@ -201,18 +213,6 @@ class MainBody extends State<MainPage> {
         enableNavigate.setState(false);
       }
     });
-
-    () async {
-      FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(selectedFloor.getId());
-      List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(
-        floorBeaconList.beaconList.map((e) => e.beaconId).toList(),
-        geoScaledUnifiedMapper,
-        selectedFloor.getId()
-      );
-
-      beaconsToRender.clear();
-      beaconsToRender.addAll(allBeaconsOfFloor);
-    }.call();
   }
 
   // Fetches the position of the nearest Bluetooth Beacon
