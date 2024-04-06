@@ -66,7 +66,7 @@ class ImageRatioMapper extends CoordinateMapper {
     MapDimension? mapDimension = mapDimensions[floorId];
 
     if (renderedImage == null || mapDimension == null) {
-      throw const InvalidFloorId();
+      return unscaledMapPixel;
     }
     
     double renderedHeight = renderedImage.height ?? 1;
@@ -79,7 +79,7 @@ class ImageRatioMapper extends CoordinateMapper {
     MapDimension? mapDimension = mapDimensions[floorId];
 
     if (renderedImage == null || mapDimension == null) {
-      throw const InvalidFloorId();
+      return unscaledMapPixel;
     }
 
     double renderedWidth = renderedImage.width ?? 1;   

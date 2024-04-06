@@ -93,24 +93,36 @@ class MainBody extends State<MainPage> {
   void initState() {
     super.initState();
     initPermissionRequest();
+   
+    () async {
+      List<FloorFileInfo> fileInfo = await fetchAllFileInfo();
+      HashMap<int, FloorInfo> floorInfo = await fetchAllFloors();
+      HashMap<int, FloorFileDimensionAndLink> fileImageLink = await fetchAllFloorFileDimensionAndLink();
+      
+      for (var element in fileInfo) {
+        FloorInfo? tempFloorFileInfo = floorInfo[element.floorId];
+        FloorFileDimensionAndLink? tempFileLinkInfo = fileImageLink[element.fileId];
+        
+        if (tempFloorFileInfo == null || tempFileLinkInfo == null) {
+          continue;
+        }
+        
+        var floorMapDimension = MapDimension(
+          tempFloorFileInfo.geoLength,
+          tempFloorFileInfo.geoWidth,
+          tempFileLinkInfo.pixelWidth.toDouble(),
+          tempFileLinkInfo.pixelHeight.toDouble()
+        );
 
-    // TODO: Use Requests instead of static assignment
-    floorImages[1] = Image.asset(
-      "assets/map/map_7th_floor.png",
-      scale: 1.0,
-      height: screenConverter.getHeightPixel(0.75),
-      width: screenConverter.getWidthPixel(0.75),
-    );
-
-    floorImages[2] = Image.asset(
-      "assets/map/map_8th_floor.png",
-      scale: 1.0,
-      height: screenConverter.getHeightPixel(0.75),
-      width: screenConverter.getWidthPixel(0.75),
-    );
-    
-    floorDimensions[1] = const MapDimension(39.6, 73.6, 2758.0, 5121.0);
-    floorDimensions[2] = const MapDimension(37.4, 73.4, 2760.0, 5228.0);
+        floorImages[element.floorId] = Image.network(
+          tempFileLinkInfo.downloadUrl,
+          scale: 1.0,
+          height: screenConverter.getHeightPixel(0.75),
+          width: screenConverter.getWidthPixel(0.75),
+        );
+        floorDimensions[element.floorId] = floorMapDimension;
+      }
+    }.call();
     
     // Initialize the Coordinate Mappers
     geoScaledUnifiedMapper = GeoScaledUnifiedMapper(floorDimensions);
