@@ -15,11 +15,11 @@ class EnableNavigate {
 }
 
 class NavigationArrow extends StatelessWidget {
-  double x, y;
-  Beacon selectedBeacon;
-  EnableNavigate enableNavigate;
+  final double x, y;
+  final Beacon selectedBeacon;
+  final EnableNavigate enableNavigate;
 
-  NavigationArrow({
+  const NavigationArrow({
     super.key,
     required this.x,
     required this.y,
@@ -63,9 +63,9 @@ class NavigationArrow extends StatelessWidget {
 }
 
 class NavigationCancelButton extends StatelessWidget {
-  EnableNavigate enableNavigate;
+  final EnableNavigate enableNavigate;
 
-  NavigationCancelButton({
+  const NavigationCancelButton({
     super.key,
     required this.enableNavigate,
   });

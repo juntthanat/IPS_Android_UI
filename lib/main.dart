@@ -1,18 +1,16 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/beacon_loc_request.dart';
 import 'package:flutter_thesis_project/bluetooth.dart';
+import 'package:flutter_thesis_project/floor_selector.dart';
 import 'package:flutter_thesis_project/map.dart';
 import 'package:flutter_thesis_project/mqtt.dart';
 import 'package:flutter_thesis_project/navigation.dart';
@@ -58,23 +56,14 @@ class MainBody extends State<MainPage> {
   double coordinateYValue = 0;
 
   static var screenConverter = ScreenSizeConverter();
+  late GeoScaledUnifiedMapper geoScaledUnifiedMapper;
+  late ImageRatioMapper imageRatioMapper;
 
-  static List<Image> mapFloor = <Image>[
-    Image.asset(
-      "assets/map/map_7th_floor.png",
-      scale: 1.0,
-      height: screenConverter.getHeightPixel(0.75),
-      width: screenConverter.getWidthPixel(0.75),
-    ),
-    Image.asset(
-      "assets/map/map_8th_floor.png",
-      scale: 1.0,
-      height: screenConverter.getHeightPixel(0.75),
-      width: screenConverter.getWidthPixel(0.75),
-    ),
-  ];
+  HashMap<int, Image> floorImages = HashMap();
+  HashMap<int, MapDimension> floorDimensions = HashMap();
+  List<BasicFloorInfo> basicFloorInfoList = List.empty(growable: true);
 
-  int mapFloorIndex = 0;
+  SelectedFloor selectedFloor = SelectedFloor(id: 1);
   Timer? refreshTimer;
 
   Beacon currentBeaconInfo = Beacon.empty();
@@ -102,16 +91,68 @@ class MainBody extends State<MainPage> {
   void initState() {
     super.initState();
     initPermissionRequest();
+   
+    () async {
+      // Getting Floor Images and Dimensions
+      List<FloorFileInfo> fileInfo = await fetchAllFileInfo();
+      HashMap<int, FloorInfo> floorInfo = await fetchAllFloors();
+      HashMap<int, FloorFileDimensionAndLink> fileImageLink = await fetchAllFloorFileDimensionAndLink();
+      
+      for (var element in fileInfo) {
+        FloorInfo? tempFloorFileInfo = floorInfo[element.floorId];
+        FloorFileDimensionAndLink? tempFileLinkInfo = fileImageLink[element.fileId];
+        
+        if (tempFloorFileInfo == null || tempFileLinkInfo == null) {
+          continue;
+        }
+        
+        var floorMapDimension = MapDimension(
+          tempFloorFileInfo.geoLength,
+          tempFloorFileInfo.geoWidth,
+          tempFileLinkInfo.pixelWidth.toDouble(),
+          tempFileLinkInfo.pixelHeight.toDouble()
+        );
+
+        floorImages[element.floorId] = Image.network(
+          tempFileLinkInfo.downloadUrl,
+          scale: 1.0,
+          height: screenConverter.getHeightPixel(0.75),
+          width: screenConverter.getWidthPixel(0.75),
+        );
+        floorDimensions[element.floorId] = floorMapDimension;
+
+        // Populate Basic Floor Info List for Floating action button rendering
+        var tempBasicFloorInfo = BasicFloorInfo(floorId: tempFloorFileInfo.floorId, floorLevel: tempFloorFileInfo.level, name: tempFloorFileInfo.name);
+        basicFloorInfoList.add(tempBasicFloorInfo);
+      }
+      
+      // Populate the beaconsToRender List
+      FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(selectedFloor.getId());
+      List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(
+        floorBeaconList.beaconList.map((e) => e.beaconId).toList(),
+        geoScaledUnifiedMapper,
+        selectedFloor.getId()
+      );
+
+      beaconsToRender.clear();
+      beaconsToRender.addAll(allBeaconsOfFloor);
+    }.call();
+    
+    // Initialize the Coordinate Mappers
+    geoScaledUnifiedMapper = GeoScaledUnifiedMapper(floorDimensions);
+    imageRatioMapper = ImageRatioMapper(floorDimensions, floorImages);
 
     interactiveMap = InteractiveMap(
       key: _key,
       coordinateXValue: coordinateXValue,
       coordinateYValue: coordinateYValue,
-      mapFloor: mapFloor,
-      mapFloorIndex: mapFloorIndex,
+      floorImages: floorImages,
+      currentFloorId: selectedFloor.getId(),
       currentBeaconInfo: currentBeaconInfo,
       beaconsToRender: beaconsToRender,
       selectedBeacon: selectedBeacon,
+      enableNavigate: enableNavigate,
+      imageRatioMapper: imageRatioMapper,
     );
 
     // Init Compass heading
@@ -174,15 +215,6 @@ class MainBody extends State<MainPage> {
         enableNavigate.setState(false);
       }
     });
-
-    () async {
-      FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(1);
-      List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(
-          floorBeaconList.beaconList.map((e) => e.beaconId).toList(), 0);
-
-      beaconsToRender.clear();
-      beaconsToRender.addAll(allBeaconsOfFloor);
-    }.call();
   }
 
   // Fetches the position of the nearest Bluetooth Beacon
@@ -197,7 +229,9 @@ class MainBody extends State<MainPage> {
     if (beaconInfo == null) {
       print("Fetching data...");
       beaconInfo = await fetchBeaconInfoFromMacAddress(
-          bluetoothNotifier.nearestDevice.id);
+        bluetoothNotifier.nearestDevice.id,
+        geoScaledUnifiedMapper,
+      );
     }
 
     if (beaconInfo.isEmpty()) {
@@ -258,27 +292,19 @@ class MainBody extends State<MainPage> {
     }
   }
 
-  void setMapFloorByIndex(int floor) {
-    setState(() {
-      mapFloorIndex = floor % mapFloor.length;
-    });
-  }
-
-  int getCurrentMapFloorIndex() {
-    return mapFloorIndex % mapFloor.length;
-  }
-
   @override
   Widget build(BuildContext context) {
     interactiveMap = InteractiveMap(
       key: _key,
       coordinateXValue: coordinateXValue,
       coordinateYValue: coordinateYValue,
-      mapFloor: mapFloor,
-      mapFloorIndex: mapFloorIndex,
+      floorImages: floorImages,
+      currentFloorId: selectedFloor.getId(),
       currentBeaconInfo: currentBeaconInfo,
       beaconsToRender: beaconsToRender,
       selectedBeacon: selectedBeacon,
+      enableNavigate: enableNavigate,
+      imageRatioMapper: imageRatioMapper,
     );
     return Scaffold(
       appBar: AppBar(
@@ -347,7 +373,8 @@ class MainBody extends State<MainPage> {
                               child: AsyncAutocomplete(
                                   selectedBeacon: selectedBeacon,
                                   enableNavigate: enableNavigate,
-                                  mapFloorIndex: mapFloorIndex,
+                                  currentFloorId: selectedFloor.getId(),
+                                  geoScaledUnifiedMapper: geoScaledUnifiedMapper,
                               ),
                             )
                           ],
@@ -373,127 +400,23 @@ class MainBody extends State<MainPage> {
   }
 
   Column constructFloorSelectorFloatingActionBar(
-      BuildContext context, List<Beacon> beaconsToRender) {
+      BuildContext context,
+      List<Beacon> beaconsToRender
+  ) {
+    basicFloorInfoList.sort((a, b) => b.floorLevel.compareTo(a.floorLevel));
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        SizedBox(
-          width: 40,
-          child: FittedBox(
-            child: FloatingActionButton(
-              heroTag: "8F",
-              backgroundColor: getCurrentMapFloorIndex() == 1
-                  ? Colors.blue
-                  : Theme.of(context).colorScheme.inversePrimary,
-              foregroundColor:
-                  getCurrentMapFloorIndex() == 1 ? Colors.white : Colors.black,
-              onPressed: () async {
-                setMapFloorByIndex(1);
-                FloorBeaconList floorBeaconList =
-                    await fetchAllFloorBeaconsByFloor(2);
-                List<Beacon> allBeaconsOfFloor =
-                    await fetchBeaconListFromIdList(
-                        floorBeaconList.beaconList
-                            .map((e) => e.beaconId)
-                            .toList(),
-                        1);
-
-                beaconsToRender.clear();
-                beaconsToRender.addAll(allBeaconsOfFloor);
-              },
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(100),
-                  topRight: Radius.circular(100),
-                  bottomLeft: Radius.circular(0),
-                  bottomRight: Radius.circular(0),
-                ),
-              ),
-              child: const Text(
-                "8F",
-                style: TextStyle(fontSize: 20),
-              ),
-            ),
-          ),
-        ),
-        SizedBox(
-          width: 40,
-          child: FittedBox(
-            child: FloatingActionButton(
-              heroTag: "7F",
-              backgroundColor: getCurrentMapFloorIndex() == 0
-                  ? Colors.blue
-                  : Theme.of(context).colorScheme.inversePrimary,
-              foregroundColor:
-                  getCurrentMapFloorIndex() == 0 ? Colors.white : Colors.black,
-              onPressed: () async {
-                setMapFloorByIndex(0);
-                FloorBeaconList floorBeaconList =
-                    await fetchAllFloorBeaconsByFloor(1);
-                List<Beacon> allBeaconsOfFloor =
-                    await fetchBeaconListFromIdList(
-                        floorBeaconList.beaconList
-                            .map((e) => e.beaconId)
-                            .toList(),
-                        0);
-
-                beaconsToRender.clear();
-                beaconsToRender.addAll(allBeaconsOfFloor);
-              },
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(0),
-                  topRight: Radius.circular(0),
-                  bottomLeft: Radius.circular(100),
-                  bottomRight: Radius.circular(100),
-                ),
-              ),
-              child: const Text(
-                "7F",
-                style: TextStyle(fontSize: 20),
-              ),
-            ),
-          ),
-        )
+        for (var basicFloorInfo in basicFloorInfoList)
+          FloorSelectorButton(
+            floorName: basicFloorInfo.floorLevel.toString(),
+            floorId: basicFloorInfo.floorId,
+            currentlySelectedFloor: selectedFloor,
+            beaconsToRender: beaconsToRender,
+            geoScaledUnifiedMapper: geoScaledUnifiedMapper,
+            floorState: basicFloorInfo == basicFloorInfoList[0] ? FloorState.top : basicFloorInfo == basicFloorInfoList[basicFloorInfoList.length - 1] ? FloorState.bottom : FloorState.normal,
+          )
       ],
     );
   }
-}
-
-Column cadrantAngle(BuildContext context, screenConverter, heading) {
-  return Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      SizedBox(
-        height: screenConverter.getHeightPixel(0.01),
-        width: screenConverter.getWidthPixel(0.6),
-      ),
-      Stack(
-        alignment: Alignment.center,
-        children: [
-          Image.asset(
-            "assets/compass/cadrant.png",
-            scale: 1.0,
-            height: screenConverter.getHeightPixel(0.1),
-            width: screenConverter.getWidthPixel(0.15),
-          ),
-          Transform.rotate(
-            angle: ((heading ?? 0) * (pi / 180) * -1),
-            child: Image.asset(
-              "assets/compass/compass.png",
-              scale: 6.0,
-              height: screenConverter.getHeightPixel(0.05),
-              width: screenConverter.getWidthPixel(0.05),
-            ),
-          ),
-        ],
-      ),
-      Text(
-        '${heading!.ceil()}',
-        style: const TextStyle(
-            color: Colors.white, fontSize: 13.0, fontWeight: FontWeight.bold),
-      ),
-    ],
-  );
 }

@@ -9,12 +9,18 @@ import 'package:flutter_thesis_project/screensize_converter.dart';
 const Duration debounceDuration = Duration(milliseconds: 500);
 
 class AsyncAutocomplete extends StatefulWidget {
-  Beacon selectedBeacon;
-  EnableNavigate enableNavigate;
-  int mapFloorIndex;
+  final Beacon selectedBeacon;
+  final EnableNavigate enableNavigate;
+  final int currentFloorId;
+  final GeoScaledUnifiedMapper geoScaledUnifiedMapper;
 
-  AsyncAutocomplete(
-      {super.key, required this.selectedBeacon, required this.enableNavigate, required this.mapFloorIndex});
+  const AsyncAutocomplete({
+    super.key,
+    required this.selectedBeacon,
+    required this.enableNavigate,
+    required this.currentFloorId,
+    required this.geoScaledUnifiedMapper,
+  });
 
   @override
   State<AsyncAutocomplete> createState() => _AsyncAutocompleteState();
@@ -93,14 +99,12 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
         debugPrint('You just selected $selection');
         var selectedGeoBeacon =
             await fetchGeoBeaconFromExactNameQuery(selection);
-        if (selectedGeoBeacon.getFloorIndex() == -1) {
+        if (selectedGeoBeacon.getFloorId() == -1) {
           return;
         }
 
-        var scaledUnifiedX = GeoScaledUnifiedMapper.getWidthPixel(
-            selectedGeoBeacon.geoX, selectedGeoBeacon.getFloorIndex());
-        var scaledUnifiedY = GeoScaledUnifiedMapper.getHeightPixel(
-            selectedGeoBeacon.geoY, selectedGeoBeacon.getFloorIndex());
+        var scaledUnifiedX = widget.geoScaledUnifiedMapper.getWidthPixel(selectedGeoBeacon.geoX, selectedGeoBeacon.getFloorId());
+        var scaledUnifiedY = widget.geoScaledUnifiedMapper.getHeightPixel(selectedGeoBeacon.geoY, selectedGeoBeacon.getFloorId());
 
         print("Scaled Unified X: $scaledUnifiedX Y: $scaledUnifiedY");
 
@@ -111,7 +115,7 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
             name: selectedGeoBeacon.name,
             macAddress: selectedGeoBeacon.macAddress);
         
-        if (widget.mapFloorIndex != selectedGeoBeacon.getFloorIndex()) {
+        if (widget.currentFloorId != selectedGeoBeacon.getFloorId()) {
           showDialog<String>(
             context: context,
             builder: (BuildContext context) => AlertDialog(

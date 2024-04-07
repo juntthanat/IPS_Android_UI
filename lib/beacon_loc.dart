@@ -10,17 +10,23 @@ class Beacon {
   double y;
   String name;
   String macAddress;
+  int? floorId;
 
   Beacon({
     required this.id,
     required this.x,
     required this.y,
     required this.name,
-    required this.macAddress
+    required this.macAddress,
+    this.floorId
   });
   
   factory Beacon.empty() {
     return Beacon(id: -1, x: 0, y: 0, name: "", macAddress: "");
+  }
+  
+  void setFloorId(int floorId) {
+    this.floorId = floorId;
   }
   
   bool isEmpty() {
@@ -31,30 +37,12 @@ class Beacon {
     return false;
   }
   
-  int getFloor() {
-    if (name.contains("ECC7") || name == "7") {
-      return 7;
-    } else if (name.contains("ECC8") || name == "8") {
-      return 8;
-    } else if (name.contains("ECC9") || name == "9") {
-      return 9;
-    }
-    
-    return -1;
-  }
-  
-  int getFloorIndex() {
-    if (name.contains("ECC7")) {
-      return 0;
-    } else if (name.contains("ECC8")) {
-      return 1;
-    }
-    
-    return -1;
+  int getFloorId() {
+    return floorId ?? -1;
   }
 }
 
-Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress) async {
+Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress, GeoScaledUnifiedMapper geoScaledUnifiedMapper) async {
   final formattedMacAddress = macAddress.replaceAll(":", "%3A");
   final formattedUri = Uri.parse('http://159.223.40.229:8080/api/v1/beacons/macAddress/$formattedMacAddress');
   
@@ -67,8 +55,8 @@ Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress) async {
       var geoBeacon = GeoBeacon.fromJson(jsonDecode(response.body));
       var beacon = Beacon(
         id: geoBeacon.id,
-        x: GeoScaledUnifiedMapper.getWidthPixel(geoBeacon.geoX, geoBeacon.getFloorIndex()),
-        y: GeoScaledUnifiedMapper.getHeightPixel(geoBeacon.geoY, geoBeacon.getFloorIndex()),
+        x: geoScaledUnifiedMapper.getWidthPixel(geoBeacon.geoX, geoBeacon.getFloorId()),
+        y: geoScaledUnifiedMapper.getHeightPixel(geoBeacon.geoY, geoBeacon.getFloorId()),
         name: geoBeacon.name,
         macAddress: geoBeacon.macAddress
       );

@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -11,8 +12,9 @@ class GeoBeacon {
   final double geoX;
   final double geoY;
   final String macAddress;
+  int? floorId;
 
-  GeoBeacon({required this.id, required this.name, required this.geoX, required this.geoY, required this.macAddress});
+  GeoBeacon({required this.id, required this.name, required this.geoX, required this.geoY, required this.macAddress, this.floorId});
   
   factory GeoBeacon.empty() {
     return GeoBeacon(id: -1, name: "", geoX: 0, geoY: 0, macAddress: "");
@@ -28,16 +30,13 @@ class GeoBeacon {
     }
     return false;
   }
+  
+  void setFloorId(int floorId) {
+    this.floorId = floorId;
+  }
 
-  int getFloorIndex() {
-    if (name.contains("ECC7")) {
-      return 0;
-    } else if (name.contains("ECC8")) {
-      return 1;
-    }
-    
-    print("Name does not contain floor's information");
-    return -1;
+  int getFloorId() {
+    return floorId ?? -1;
   }
 }
 
@@ -57,16 +56,17 @@ class GeoBeaconList {
     return GeoBeaconList(geoBeaconList: tempGeoBeaconList);
   }
   
-  List<Beacon> getBeacons(int mapFloorIndex) {
+  List<Beacon> getBeacons(GeoScaledUnifiedMapper geoScaledUnifiedMapper, int floorId) {
     List<Beacon> result = List.empty(growable: true);
 
     geoBeaconList.forEach((element) {
       var tempBeacon = Beacon(
         id: element.id,
-        x: GeoScaledUnifiedMapper.getWidthPixel(element.geoX, mapFloorIndex),
-        y: GeoScaledUnifiedMapper.getHeightPixel(element.geoY, mapFloorIndex),
+        x: geoScaledUnifiedMapper.getWidthPixel(element.geoX, floorId),
+        y: geoScaledUnifiedMapper.getHeightPixel(element.geoY, floorId),
         name: element.name,
-        macAddress: element.macAddress
+        macAddress: element.macAddress,
+        floorId: floorId
       );
       
       result.add(tempBeacon);
@@ -107,11 +107,186 @@ class FloorBeaconList {
   }
 }
 
-Future<FloorBeaconList> fetchAllFloorBeaconsByFloor(int mapFloorNumber) async {
+class FloorInfo {
+  final int floorId;
+  final String name;
+  final double geoLength;
+  final double geoWidth;
+  final double azimuth;
+  final int level;
+
+  const FloorInfo({
+    required this.floorId,
+    required this.name,
+    required this.geoLength,
+    required this.geoWidth,
+    required this.azimuth,
+    required this.level
+  });
+}
+
+class FloorFileInfo {
+  final int floorFileId;
+  final int floorId;
+  final int fileId;
+
+  const FloorFileInfo({
+    required this.floorFileId,
+    required this.floorId,
+    required this.fileId,
+  });
+}
+
+class FloorFileInfoList {
+  final List<FloorFileInfo> floorFileInfoList;
+
+  FloorFileInfoList({required this.floorFileInfoList});  
+  
+  factory FloorFileInfoList.fromJson(List<dynamic> jsonList) {
+    List<FloorFileInfo> floorFileInfoTempList = List.empty(growable: true);
+    jsonList.forEach((element) {
+      var tempFloorFileInfo = FloorFileInfo(floorFileId: element["floorFileId"], floorId: element["floorId"], fileId: element["fileId"]);
+      floorFileInfoTempList.add(tempFloorFileInfo);
+    }); 
+    
+    return FloorFileInfoList(floorFileInfoList: floorFileInfoTempList);
+  }
+}
+
+class FloorFileDimensionAndLink {
+  int fileId;
+  String name;
+  String downloadUrl;
+  int pixelWidth;
+  int pixelHeight;
+
+  FloorFileDimensionAndLink({
+    required this.fileId,
+    required this.name,
+    required this.downloadUrl,
+    required this.pixelWidth,
+    required this.pixelHeight
+  });
+}
+
+class FloorFileDimensionAndLinkList {
+  List<FloorFileDimensionAndLink> floorFileDimensionAndLinkList;
+  
+  FloorFileDimensionAndLinkList({
+    required this.floorFileDimensionAndLinkList
+  });
+
+  factory FloorFileDimensionAndLinkList.fromJson(List<dynamic> jsonList) {
+    List<FloorFileDimensionAndLink> floorFileDimensionAndLinkTempList = List.empty(growable: true);
+    jsonList.forEach((element) {
+      var temp = FloorFileDimensionAndLink(
+        fileId: element["fileId"],
+        name: element["name"],
+        downloadUrl: element["downloadUrl"],
+        pixelWidth: element["pixelWidth"],
+        pixelHeight: element["pixelHeight"]
+      );
+      floorFileDimensionAndLinkTempList.add(temp);
+    }); 
+
+    return FloorFileDimensionAndLinkList(floorFileDimensionAndLinkList: floorFileDimensionAndLinkTempList);
+  }
+}
+
+class BasicFloorInfo {
+  int floorId;
+  int floorLevel;
+  String name;
+
+  BasicFloorInfo({
+    required this.floorId,
+    required this.floorLevel,
+    required this.name,
+  });
+}
+
+Future<HashMap<int, FloorInfo>> fetchAllFloors() async {
+  const base_uri = 'http://159.223.40.229:8080/api/v1';
+  
+  // Floor Id and Info Map
+  HashMap<int, FloorInfo> floorInfoList = HashMap();
+
+  try {
+    var uri = Uri.parse("$base_uri/floors");
+    final response = await http.get(uri);
+  
+    if (response.statusCode == 200) {
+      print(response.body);
+      List<dynamic> jsonList = jsonDecode(response.body);
+      jsonList.forEach((element) {
+        var floorInfo = FloorInfo(
+          floorId: element["floorId"],
+          name: element["name"],
+          geoLength: element["geoLength"],
+          geoWidth: element["geoWidth"],
+          azimuth: element["azimuth"],
+          level: element["level"]
+        );
+        floorInfoList[floorInfo.floorId] = floorInfo;
+      });
+    } else {
+      print("Response Status NOT 200");
+    }
+  } on Exception catch(_) {
+    print("Failed to make get request");
+  }
+  
+  return floorInfoList;
+}
+
+Future<HashMap<int, FloorFileDimensionAndLink>> fetchAllFloorFileDimensionAndLink() async {
+  const base_uri = 'http://159.223.40.229:8080/api/v1';
+  
+  // File ID and Info Map
+  HashMap<int, FloorFileDimensionAndLink> floorFileDimensionAndLinkMap = HashMap();
+
+  try {
+    var uri = Uri.parse("$base_uri/files");
+    final response = await http.get(uri);
+    
+    if (response.statusCode == 200) {
+      FloorFileDimensionAndLinkList tempResultList = FloorFileDimensionAndLinkList.fromJson(jsonDecode(response.body));
+      tempResultList.floorFileDimensionAndLinkList.forEach((element) {
+        floorFileDimensionAndLinkMap[element.fileId] = element;
+      });
+    }
+  } on Exception catch(e) {
+    print("Failed to get Floor File Links");
+    print(e);
+  }
+  
+  return floorFileDimensionAndLinkMap;
+}
+
+Future<List<FloorFileInfo>> fetchAllFileInfo() async {
+  const base_uri = 'http://159.223.40.229:8080/api/v1/floor-files';
+  List<FloorFileInfo> result = List.empty();
+
+  try {
+    var uri = Uri.parse(base_uri);
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      var floorFileInfoList = FloorFileInfoList.fromJson(jsonDecode(response.body));
+      result = floorFileInfoList.floorFileInfoList;
+    }
+  } on Exception catch(_) {
+    print("Failed to make File Info Fetch request");
+  }
+  
+  return result;
+}
+
+Future<FloorBeaconList> fetchAllFloorBeaconsByFloor(int floorId) async {
   const base_uri = 'http://159.223.40.229:8080/api/v1';
 
   try {
-    var uri = Uri.parse("$base_uri/floor-beacons/floorId/$mapFloorNumber");
+    var uri = Uri.parse("$base_uri/floor-beacons/floorId/$floorId");
     final response = await http.get(uri);
   
     if (response.statusCode == 200) {
@@ -127,7 +302,7 @@ Future<FloorBeaconList> fetchAllFloorBeaconsByFloor(int mapFloorNumber) async {
   return FloorBeaconList.empty();
 }
 
-Future<List<Beacon>> fetchBeaconListFromIdList(List<int> idList, int mapFloorIndex) async {
+Future<List<Beacon>> fetchBeaconListFromIdList(List<int> idList, GeoScaledUnifiedMapper geoScaledUnifiedMapper, int floorId) async {
   const base_uri = 'http://159.223.40.229:8080/api/v1/beacons/beacon-id-list';
   final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
   Map<String, List<int>> http_param = { "beaconIdList": idList };
@@ -138,7 +313,7 @@ Future<List<Beacon>> fetchBeaconListFromIdList(List<int> idList, int mapFloorInd
   
     if (response.statusCode == 200) {
 	    var geoBeaconList = GeoBeaconList.fromJson(jsonDecode(response.body));
-      return geoBeaconList.getBeacons(mapFloorIndex);
+      return geoBeaconList.getBeacons(geoScaledUnifiedMapper, floorId);
     } else {
       //throw Exception("Failed to fetch Location of said beacon");
     }
@@ -177,13 +352,14 @@ Future<GeoBeacon> fetchGeoBeaconFromExactNameQuery(String name) async {
   const base_uri = '159.223.40.229:8080';
   final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
   Map<String, String> http_param = { "name": name };
+  var geoBeacon = GeoBeacon.empty();
 
   try {
     var uri = Uri.http(base_uri, "/api/v1/beacons/exact-string-query", http_param);
     final response = await http.get(uri, headers: headers);
   
     if (response.statusCode == 200) {
-	    return GeoBeacon.fromJson(jsonDecode(response.body));
+	    geoBeacon = GeoBeacon.fromJson(jsonDecode(response.body));
     } else {
       //throw Exception("Failed to fetch Location of said beacon");
     }
@@ -192,7 +368,23 @@ Future<GeoBeacon> fetchGeoBeaconFromExactNameQuery(String name) async {
     print(e);
   }
   
-  return GeoBeacon.empty();
+  try {
+    if (geoBeacon.isEmpty()) {
+      return geoBeacon;
+    }
+
+    var uri = Uri.http(base_uri, "/api/v1/floor-beacons/beaconId/${geoBeacon.id}");
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      geoBeacon.setFloorId(jsonDecode(response.body)["floorId"]);
+    }
+  } on Exception catch(e) {
+    print("Failed to fetch Beacon's Floor Info");
+    print(e);
+  }
+  
+  return geoBeacon;
 }
 
 Future<FloorBeaconList> fetchFloorBeaconListFromIdList(List<int> idList) async {
