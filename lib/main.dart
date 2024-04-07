@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter/services.dart';
@@ -113,9 +114,8 @@ class MainBody extends State<MainPage> {
           tempFileLinkInfo.pixelHeight.toDouble()
         );
 
-        floorImages[element.floorId] = Image.network(
-          tempFileLinkInfo.downloadUrl,
-          scale: 1.0,
+        floorImages[element.floorId] = Image(
+          image: CachedNetworkImageProvider(tempFileLinkInfo.downloadUrl, scale: 1.0),
           height: screenConverter.getHeightPixel(0.75),
           width: screenConverter.getWidthPixel(0.75),
         );
