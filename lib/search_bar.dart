@@ -113,7 +113,9 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
             x: scaledUnifiedX,
             y: scaledUnifiedY,
             name: selectedGeoBeacon.name,
-            macAddress: selectedGeoBeacon.macAddress);
+            macAddress: selectedGeoBeacon.macAddress,
+            floorId: selectedGeoBeacon.floorId
+        );
         
         if (widget.currentFloorId != selectedGeoBeacon.getFloorId()) {
           showDialog<String>(
@@ -140,6 +142,7 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
         widget.selectedBeacon.y = selectedBeacon.y;
         widget.selectedBeacon.name = selectedBeacon.name;
         widget.selectedBeacon.macAddress = selectedBeacon.macAddress;
+        widget.selectedBeacon.floorId = selectedBeacon.floorId;
         // END DANGER BLOCK
 
         widget.enableNavigate.setState(true);
