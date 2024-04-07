@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
@@ -18,6 +19,8 @@ import 'package:flutter_thesis_project/permissions.dart';
 import 'package:flutter_thesis_project/search_bar.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+import 'package:sensors_plus/sensors_plus.dart';
 
 import 'package:flutter_thesis_project/screensize_converter.dart';
 
@@ -54,6 +57,11 @@ class MainBody extends State<MainPage> {
   double? heading = 0;
   double coordinateXValue = 0;
   double coordinateYValue = 0;
+
+  double magX = 0;
+  double magY = 0;
+  double magZ = 0;
+  double magAngle = 0;
 
   static var screenConverter = ScreenSizeConverter();
   late GeoScaledUnifiedMapper geoScaledUnifiedMapper;
@@ -215,6 +223,23 @@ class MainBody extends State<MainPage> {
         enableNavigate.setState(false);
       }
     });
+
+  // const Duration _ignoreDuration = Duration(milliseconds: 20);
+  // MagnetometerEvent? _magnetometerEvent;
+  // DateTime? _magnetometerUpdateTime;
+  // int? _magnetometerLastInterval;
+
+  // final _streamSubscriptions = <StreamSubscription<dynamic>>[];
+
+  Duration sensorInterval = SensorInterval.normalInterval;
+  magnetometerEventStream(samplingPeriod: sensorInterval).listen(
+    (MagnetometerEvent event) {
+      magX = event.x;
+      magY = event.y;
+      magZ = event.z;
+      magAngle = atan2(event.x, event.y) * 180/pi;
+    }
+  );
   }
 
   // Fetches the position of the nearest Bluetooth Beacon
@@ -356,7 +381,8 @@ class MainBody extends State<MainPage> {
                       children: [
                         // cadrantAngle(context, screenConverter, heading),
                         Text(
-                          "(X: $coordinateXValue, Y: $coordinateYValue)",
+                          // "(X: $coordinateXValue, Y: $coordinateYValue)",
+                          "MagX: $magX, MagY: $magY, MagZ: $magZ, MagAngle: $magAngle",
                           style: const TextStyle(color: Colors.white),
                         ),
                       ],
