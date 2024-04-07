@@ -19,6 +19,8 @@ class NavigationArrow extends StatelessWidget {
   final double x, y;
   final Beacon selectedBeacon;
   final EnableNavigate enableNavigate;
+  final double magnetometerAngle;
+  final double floorplanAzimuth;
 
   const NavigationArrow({
     super.key,
@@ -26,6 +28,8 @@ class NavigationArrow extends StatelessWidget {
     required this.y,
     required this.selectedBeacon,
     required this.enableNavigate,
+    required this.magnetometerAngle,
+    required this.floorplanAzimuth,
   });
 
   double getAngle() {
@@ -35,7 +39,8 @@ class NavigationArrow extends StatelessWidget {
 
     var xVec = selectedBeacon.x - x;
     var yVec = selectedBeacon.y - y;
-    var angle = math.atan2(xVec, yVec);
+    // var angle = math.atan2(xVec, yVec);
+    var angle = (math.atan2(xVec, yVec)) - floorplanAzimuth + magnetometerAngle;
 
     return angle;
   }

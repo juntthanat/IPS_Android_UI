@@ -367,6 +367,8 @@ class MainBody extends State<MainPage> {
                         y: coordinateYValue,
                         selectedBeacon: selectedBeacon,
                         enableNavigate: enableNavigate,
+                        magnetometerAngle: magAngle,
+                        floorplanAzimuth: currentFloorAzimuth,
                       ),
                       NavigationCancelButton(enableNavigate: enableNavigate),
                     ],
@@ -388,7 +390,7 @@ class MainBody extends State<MainPage> {
                         // cadrantAngle(context, screenConverter, heading),
                         Text(
                           // "(X: $coordinateXValue, Y: $coordinateYValue)",
-                          "MagX: $magX, MagY: $magY, MagZ: $magZ, MagAngle: $magAngle, FloorInfo: ${currentFloorAzimuth}",
+                          "MagX: $magX, MagY: $magY, MagZ: $magZ, MagAngle: $magAngle, FloorInfo: $currentFloorAzimuth",
                           style: const TextStyle(color: Colors.white),
                         ),
                       ],
@@ -410,8 +412,6 @@ class MainBody extends State<MainPage> {
                               ),
                             )
                           ],
-                          /* // Start (Input X, Input Y, and reset button)
-                        // End (Input X, Input Y, and Reset Button) */
                         ),
                       ),
                     ),

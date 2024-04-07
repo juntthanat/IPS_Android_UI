@@ -425,7 +425,6 @@ Future fetchFloorAzimuth(selectedFloor) async {
       print(response.body);
       final jsonList = jsonDecode(response.body);
       floorInfo = jsonList;
-      // print("floorInfo: , $floorInfo, floorId: ${floorInfo['floorId']}, azimuth: ${floorInfo['azimuth']}, ");
     } else {
       print("Response Status NOT 200");
     }
