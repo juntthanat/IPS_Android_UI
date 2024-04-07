@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/screensize_converter.dart';
 import 'package:http/http.dart' as http;
@@ -205,19 +206,18 @@ class BasicFloorInfo {
   });
 }
 
-Future<HashMap<int, FloorInfo>> fetchAllFloors() async {
+Future<HashMap<int, FloorInfo>> fetchAllFloors(Dio dio) async {
   const base_uri = 'http://159.223.40.229:8080/api/v1';
   
   // Floor Id and Info Map
   HashMap<int, FloorInfo> floorInfoList = HashMap();
 
   try {
-    var uri = Uri.parse("$base_uri/floors");
-    final response = await http.get(uri);
+    final response = await dio.get("$base_uri/floors");
   
     if (response.statusCode == 200) {
-      print(response.body);
-      List<dynamic> jsonList = jsonDecode(response.body);
+      print(response.toString());
+      List<dynamic> jsonList = response.data;
       jsonList.forEach((element) {
         var floorInfo = FloorInfo(
           floorId: element["floorId"],
@@ -232,25 +232,24 @@ Future<HashMap<int, FloorInfo>> fetchAllFloors() async {
     } else {
       print("Response Status NOT 200");
     }
-  } on Exception catch(_) {
-    print("Failed to make get request");
+  } on Exception catch(e) {
+    print("Failed to make get request (fetchAllFloors): $e");
   }
   
   return floorInfoList;
 }
 
-Future<HashMap<int, FloorFileDimensionAndLink>> fetchAllFloorFileDimensionAndLink() async {
+Future<HashMap<int, FloorFileDimensionAndLink>> fetchAllFloorFileDimensionAndLink(Dio dio) async {
   const base_uri = 'http://159.223.40.229:8080/api/v1';
   
   // File ID and Info Map
   HashMap<int, FloorFileDimensionAndLink> floorFileDimensionAndLinkMap = HashMap();
 
   try {
-    var uri = Uri.parse("$base_uri/files");
-    final response = await http.get(uri);
+    final response = await dio.get("$base_uri/files");
     
     if (response.statusCode == 200) {
-      FloorFileDimensionAndLinkList tempResultList = FloorFileDimensionAndLinkList.fromJson(jsonDecode(response.body));
+      FloorFileDimensionAndLinkList tempResultList = FloorFileDimensionAndLinkList.fromJson(response.data);
       tempResultList.floorFileDimensionAndLinkList.forEach((element) {
         floorFileDimensionAndLinkMap[element.fileId] = element;
       });
@@ -263,16 +262,15 @@ Future<HashMap<int, FloorFileDimensionAndLink>> fetchAllFloorFileDimensionAndLin
   return floorFileDimensionAndLinkMap;
 }
 
-Future<List<FloorFileInfo>> fetchAllFileInfo() async {
+Future<List<FloorFileInfo>> fetchAllFileInfo(Dio dio) async {
   const base_uri = 'http://159.223.40.229:8080/api/v1/floor-files';
   List<FloorFileInfo> result = List.empty();
 
   try {
-    var uri = Uri.parse(base_uri);
-    final response = await http.get(uri);
+    final response = await dio.get(base_uri);
 
     if (response.statusCode == 200) {
-      var floorFileInfoList = FloorFileInfoList.fromJson(jsonDecode(response.body));
+      var floorFileInfoList = FloorFileInfoList.fromJson(response.data);
       result = floorFileInfoList.floorFileInfoList;
     }
   } on Exception catch(_) {
@@ -282,16 +280,15 @@ Future<List<FloorFileInfo>> fetchAllFileInfo() async {
   return result;
 }
 
-Future<FloorBeaconList> fetchAllFloorBeaconsByFloor(int floorId) async {
+Future<FloorBeaconList> fetchAllFloorBeaconsByFloor(Dio dio, int floorId) async {
   const base_uri = 'http://159.223.40.229:8080/api/v1';
 
   try {
-    var uri = Uri.parse("$base_uri/floor-beacons/floorId/$floorId");
-    final response = await http.get(uri);
+    final response = await dio.get("$base_uri/floor-beacons/floorId/$floorId");
   
     if (response.statusCode == 200) {
-      print(response.body);
-       return FloorBeaconList.fromJson(jsonDecode(response.body));
+      print(response.toString());
+       return FloorBeaconList.fromJson(response.data);
     } else {
       print("Response Status NOT 200");
     }
@@ -302,70 +299,69 @@ Future<FloorBeaconList> fetchAllFloorBeaconsByFloor(int floorId) async {
   return FloorBeaconList.empty();
 }
 
-Future<List<Beacon>> fetchBeaconListFromIdList(List<int> idList, GeoScaledUnifiedMapper geoScaledUnifiedMapper, int floorId) async {
+Future<List<Beacon>> fetchBeaconListFromIdList(Dio dio, List<int> idList, GeoScaledUnifiedMapper geoScaledUnifiedMapper, int floorId) async {
   const base_uri = 'http://159.223.40.229:8080/api/v1/beacons/beacon-id-list';
-  final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+  // final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
   Map<String, List<int>> http_param = { "beaconIdList": idList };
 
   try {
-    var uri = Uri.parse(base_uri);
-    final response = await http.post(uri, headers: headers, body: json.encode(http_param));
+    // final response = await dio.post(base_uri, headers: headers, body: json.encode(http_param));
+    final response = await dio.post(
+      base_uri,
+      data: http_param,
+    );
   
     if (response.statusCode == 200) {
-	    var geoBeaconList = GeoBeaconList.fromJson(jsonDecode(response.body));
+	    var geoBeaconList = GeoBeaconList.fromJson(response.data);
       return geoBeaconList.getBeacons(geoScaledUnifiedMapper, floorId);
     } else {
       //throw Exception("Failed to fetch Location of said beacon");
     }
   } on Exception catch(e) {
-    print("Failed to make get request");
-    print(e);
+    print("Failed to make get request (fetchBeaconListFromIdList): $e");
   }
   
   return List.empty();
 }
 
-Future<List<GeoBeacon>> fetchGeoBeaconsFromNameQuery(String name) async {
-  const base_uri = '159.223.40.229:8080';
+Future<List<GeoBeacon>> fetchGeoBeaconsFromNameQuery(Dio dio, String name) async {
+  const base_uri = 'http://159.223.40.229:8080';
   final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
   Map<String, String> http_param = { "name": name };
 
   try {
-    var uri = Uri.http(base_uri, "/api/v1/beacons/string-query", http_param);
-    final response = await http.get(uri, headers: headers);
+    // var uri = Uri.http(base_uri, "/api/v1/beacons/string-query", http_param);
+    final response = await dio.get("$base_uri/api/v1/beacons/string-query", queryParameters: http_param);
   
     if (response.statusCode == 200) {
-	    var geoBeaconList = GeoBeaconList.fromJson(jsonDecode(response.body));
+	    var geoBeaconList = GeoBeaconList.fromJson(response.data);
       return geoBeaconList.geoBeaconList;
     } else {
       //throw Exception("Failed to fetch Location of said beacon");
     }
   } on Exception catch(e) {
-    print("Failed to make get request");
-    print(e);
+    print("Failed to make get request (fetchGeoBeaconsFromNameQuery): $e");
   }
   
   return List.empty();
 }
 
-Future<GeoBeacon> fetchGeoBeaconFromExactNameQuery(String name) async {
-  const base_uri = '159.223.40.229:8080';
-  final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+Future<GeoBeacon> fetchGeoBeaconFromExactNameQuery(Dio dio, String name) async {
+  const base_uri = 'http://159.223.40.229:8080';
   Map<String, String> http_param = { "name": name };
   var geoBeacon = GeoBeacon.empty();
 
   try {
-    var uri = Uri.http(base_uri, "/api/v1/beacons/exact-string-query", http_param);
-    final response = await http.get(uri, headers: headers);
+    // var uri = Uri.http(base_uri, "/api/v1/beacons/exact-string-query", http_param);
+    final response = await dio.get("$base_uri/api/v1/beacons/exact-string-query", queryParameters: http_param);
   
     if (response.statusCode == 200) {
-	    geoBeacon = GeoBeacon.fromJson(jsonDecode(response.body));
+	    geoBeacon = GeoBeacon.fromJson(response.data);
     } else {
       //throw Exception("Failed to fetch Location of said beacon");
     }
   } on Exception catch(e) {
-    print("Failed to make get request");
-    print(e);
+    print("Failed to make get request (fetchGeoBeaconFromExactNameQuery): $e");
   }
   
   try {
@@ -373,39 +369,36 @@ Future<GeoBeacon> fetchGeoBeaconFromExactNameQuery(String name) async {
       return geoBeacon;
     }
 
-    var uri = Uri.http(base_uri, "/api/v1/floor-beacons/beaconId/${geoBeacon.id}");
-    final response = await http.get(uri);
+    // var uri = Uri.http(base_uri, "/api/v1/floor-beacons/beaconId/${geoBeacon.id}");
+    final response = await dio.get("$base_uri/api/v1/floor-beacons/beaconId/${geoBeacon.id}");
 
     if (response.statusCode == 200) {
-      geoBeacon.setFloorId(jsonDecode(response.body)["floorId"]);
+      geoBeacon.setFloorId(response.data["floorId"]);
     }
   } on Exception catch(e) {
-    print("Failed to fetch Beacon's Floor Info");
-    print(e);
+    print("Failed to fetch Beacon's Floor Info (fetchGeoBeaconFromExactNameQuery): $e");
   }
   
   return geoBeacon;
 }
 
-Future<FloorBeaconList> fetchFloorBeaconListFromIdList(List<int> idList) async {
-  final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
+Future<FloorBeaconList> fetchFloorBeaconListFromIdList(Dio dio, List<int> idList) async {
   List<String> idListAsString = List.empty(growable: true);
 
   idList.forEach((element) => idListAsString.add(element.toString()));
 
   try {
-    var uri = Uri.http("159.223.40.229:8080", "/api/v1/floor-beacons/beaconId", { "beaconIdList" : idListAsString });
-    final response = await http.get(uri, headers: headers);
-    print(response.body);
+    // var uri = Uri.http("159.223.40.229:8080", "/api/v1/floor-beacons/beaconId", { "beaconIdList" : idListAsString });
+    final response = await dio.get("http://159.223.40.229:8080/api/v1/floor-beacons/beaconId", queryParameters: { "beaconIdList" : idListAsString });
+    print(response.toString());
 
     if (response.statusCode == 200) {
-      FloorBeaconList floorBeaconList = FloorBeaconList.fromJson(jsonDecode(response.body));
+      FloorBeaconList floorBeaconList = FloorBeaconList.fromJson(response.data);
       return floorBeaconList;
     }
 
   } on Exception catch(e) {
-    print("Failed to make get request");
-    print(e);
+    print("Failed to make get request (fetchFloorBeaconListFromIdList): $e");
   }
 
   return FloorBeaconList.empty();
