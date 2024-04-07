@@ -63,12 +63,16 @@ class MainBody extends State<MainPage> {
   double magZ = 0;
   double magAngle = 0;
 
+  double currentFloorAzimuth = 0;
+
   static var screenConverter = ScreenSizeConverter();
   late GeoScaledUnifiedMapper geoScaledUnifiedMapper;
   late ImageRatioMapper imageRatioMapper;
 
   HashMap<int, Image> floorImages = HashMap();
   HashMap<int, MapDimension> floorDimensions = HashMap();
+
+
   List<BasicFloorInfo> basicFloorInfoList = List.empty(growable: true);
 
   SelectedFloor selectedFloor = SelectedFloor(id: 1);
@@ -105,7 +109,9 @@ class MainBody extends State<MainPage> {
       List<FloorFileInfo> fileInfo = await fetchAllFileInfo();
       HashMap<int, FloorInfo> floorInfo = await fetchAllFloors();
       HashMap<int, FloorFileDimensionAndLink> fileImageLink = await fetchAllFloorFileDimensionAndLink();
-      
+
+      currentFloorAzimuth = await fetchFloorAzimuth(selectedFloor.getId());
+
       for (var element in fileInfo) {
         FloorInfo? tempFloorFileInfo = floorInfo[element.floorId];
         FloorFileDimensionAndLink? tempFileLinkInfo = fileImageLink[element.fileId];
@@ -382,7 +388,7 @@ class MainBody extends State<MainPage> {
                         // cadrantAngle(context, screenConverter, heading),
                         Text(
                           // "(X: $coordinateXValue, Y: $coordinateYValue)",
-                          "MagX: $magX, MagY: $magY, MagZ: $magZ, MagAngle: $magAngle",
+                          "MagX: $magX, MagY: $magY, MagZ: $magZ, MagAngle: $magAngle, FloorInfo: ${currentFloorAzimuth}",
                           style: const TextStyle(color: Colors.white),
                         ),
                       ],

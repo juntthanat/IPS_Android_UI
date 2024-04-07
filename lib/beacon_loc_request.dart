@@ -410,3 +410,27 @@ Future<FloorBeaconList> fetchFloorBeaconListFromIdList(List<int> idList) async {
 
   return FloorBeaconList.empty();
 }
+
+Future fetchFloorAzimuth(selectedFloor) async {
+   const base_uri = 'http://159.223.40.229:8080/api/v1';
+  
+  // Floor Id and Info Map
+  var floorInfo;
+
+  try {
+    var uri = Uri.parse("$base_uri/floors/$selectedFloor");
+    final response = await http.get(uri);
+  
+    if (response.statusCode == 200) {
+      print(response.body);
+      final jsonList = jsonDecode(response.body);
+      floorInfo = jsonList;
+      // print("floorInfo: , $floorInfo, floorId: ${floorInfo['floorId']}, azimuth: ${floorInfo['azimuth']}, ");
+    } else {
+      print("Response Status NOT 200");
+    }
+  } on Exception catch(_) {
+    print("Failed to make get request");
+  }
+  return floorInfo["azimuth"];
+}
