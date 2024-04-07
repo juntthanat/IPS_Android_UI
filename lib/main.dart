@@ -335,6 +335,7 @@ class MainBody extends State<MainPage> {
                         x: coordinateXValue,
                         y: coordinateYValue,
                         selectedBeacon: selectedBeacon,
+                        selectedFloorId: selectedFloor.getId(),
                         enableNavigate: enableNavigate,
                       ),
                       NavigationCancelButton(enableNavigate: enableNavigate),

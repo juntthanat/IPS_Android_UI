@@ -16,6 +16,7 @@ class EnableNavigate {
 
 class NavigationArrow extends StatelessWidget {
   final double x, y;
+  final int selectedFloorId;
   final Beacon selectedBeacon;
   final EnableNavigate enableNavigate;
 
@@ -24,11 +25,16 @@ class NavigationArrow extends StatelessWidget {
     required this.x,
     required this.y,
     required this.selectedBeacon,
+    required this.selectedFloorId,
     required this.enableNavigate,
   });
 
   double getAngle() {
-    if (selectedBeacon.isEmpty() || !enableNavigate.getState()) {
+    if (
+      selectedBeacon.isEmpty() ||
+      !enableNavigate.getState() ||
+      selectedFloorId != selectedBeacon.getFloorId()
+    ) {
       return 0;
     }
 
