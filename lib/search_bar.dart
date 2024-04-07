@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/beacon_loc_request.dart';
@@ -13,6 +14,7 @@ class AsyncAutocomplete extends StatefulWidget {
   final EnableNavigate enableNavigate;
   final int currentFloorId;
   final GeoScaledUnifiedMapper geoScaledUnifiedMapper;
+  final Dio dio;
 
   const AsyncAutocomplete({
     super.key,
@@ -20,6 +22,7 @@ class AsyncAutocomplete extends StatefulWidget {
     required this.enableNavigate,
     required this.currentFloorId,
     required this.geoScaledUnifiedMapper,
+    required this.dio,
   });
 
   @override
@@ -39,7 +42,7 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
 
     late final Iterable<String> options;
     try {
-      final response = await fetchGeoBeaconsFromNameQuery(_currentQuery!);
+      final response = await fetchGeoBeaconsFromNameQuery(widget.dio, _currentQuery!);
       options = response.map((e) => e.name);
     } catch (error) {
       if (error is _NetworkException) {
@@ -98,7 +101,7 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
       onSelected: (String selection) async {
         debugPrint('You just selected $selection');
         var selectedGeoBeacon =
-            await fetchGeoBeaconFromExactNameQuery(selection);
+            await fetchGeoBeaconFromExactNameQuery(widget.dio, selection);
         if (selectedGeoBeacon.getFloorId() == -1) {
           return;
         }

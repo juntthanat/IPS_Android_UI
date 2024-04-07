@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/beacon_loc_request.dart';
@@ -33,6 +34,7 @@ class FloorSelectorButton extends StatefulWidget {
   final List<Beacon> beaconsToRender;
   final FloorState floorState;
   final GeoScaledUnifiedMapper geoScaledUnifiedMapper;
+  final Dio dio;
 
   const FloorSelectorButton({
     super.key,
@@ -41,6 +43,7 @@ class FloorSelectorButton extends StatefulWidget {
     required this.currentlySelectedFloor,
     required this.beaconsToRender,
     required this.geoScaledUnifiedMapper,
+    required this.dio,
     this.floorState = FloorState.normal,
   });
 
@@ -85,11 +88,12 @@ class _FloorSelectorButtonState extends State<FloorSelectorButton> {
           foregroundColor: widget.currentlySelectedFloor.getId() == widget.floorId ? Colors.white : Colors.black,
           onPressed: () async {
             widget.currentlySelectedFloor.setId(widget.floorId);
-            FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(widget.floorId);
+            FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(widget.dio, widget.floorId);
             List<int> floorBeaconIdList = floorBeaconList.beaconList
               .map((e) => e.beaconId)
               .toList();
             List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(
+              widget.dio,
               floorBeaconIdList,
               widget.geoScaledUnifiedMapper,
               widget.floorId

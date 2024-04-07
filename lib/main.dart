@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter/services.dart';
@@ -76,6 +78,7 @@ class MainBody extends State<MainPage> {
   late InteractiveMap interactiveMap;
   
   EnableNavigate enableNavigate = EnableNavigate();
+  Dio dio = Dio();
 
   @override
   void dispose() {
@@ -91,12 +94,14 @@ class MainBody extends State<MainPage> {
   void initState() {
     super.initState();
     initPermissionRequest();
+
+    dio.interceptors.add(CacheInterceptor());
    
     () async {
       // Getting Floor Images and Dimensions
-      List<FloorFileInfo> fileInfo = await fetchAllFileInfo();
-      HashMap<int, FloorInfo> floorInfo = await fetchAllFloors();
-      HashMap<int, FloorFileDimensionAndLink> fileImageLink = await fetchAllFloorFileDimensionAndLink();
+      List<FloorFileInfo> fileInfo = await fetchAllFileInfo(dio);
+      HashMap<int, FloorInfo> floorInfo = await fetchAllFloors(dio);
+      HashMap<int, FloorFileDimensionAndLink> fileImageLink = await fetchAllFloorFileDimensionAndLink(dio);
       
       for (var element in fileInfo) {
         FloorInfo? tempFloorFileInfo = floorInfo[element.floorId];
@@ -113,9 +118,8 @@ class MainBody extends State<MainPage> {
           tempFileLinkInfo.pixelHeight.toDouble()
         );
 
-        floorImages[element.floorId] = Image.network(
-          tempFileLinkInfo.downloadUrl,
-          scale: 1.0,
+        floorImages[element.floorId] = Image(
+          image: CachedNetworkImageProvider(tempFileLinkInfo.downloadUrl, scale: 1.0),
           height: screenConverter.getHeightPixel(0.75),
           width: screenConverter.getWidthPixel(0.75),
         );
@@ -127,8 +131,9 @@ class MainBody extends State<MainPage> {
       }
       
       // Populate the beaconsToRender List
-      FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(selectedFloor.getId());
+      FloorBeaconList floorBeaconList = await fetchAllFloorBeaconsByFloor(dio, selectedFloor.getId());
       List<Beacon> allBeaconsOfFloor = await fetchBeaconListFromIdList(
+        dio,
         floorBeaconList.beaconList.map((e) => e.beaconId).toList(),
         geoScaledUnifiedMapper,
         selectedFloor.getId()
@@ -376,6 +381,7 @@ class MainBody extends State<MainPage> {
                                   enableNavigate: enableNavigate,
                                   currentFloorId: selectedFloor.getId(),
                                   geoScaledUnifiedMapper: geoScaledUnifiedMapper,
+                                  dio: dio
                               ),
                             )
                           ],
@@ -415,9 +421,43 @@ class MainBody extends State<MainPage> {
             currentlySelectedFloor: selectedFloor,
             beaconsToRender: beaconsToRender,
             geoScaledUnifiedMapper: geoScaledUnifiedMapper,
+            dio: dio,
             floorState: basicFloorInfo == basicFloorInfoList[0] ? FloorState.top : basicFloorInfo == basicFloorInfoList[basicFloorInfoList.length - 1] ? FloorState.bottom : FloorState.normal,
           )
       ],
     );
+  }
+}
+
+class CacheInterceptor extends Interceptor {
+  CacheInterceptor();
+
+  final _cache = <Uri, Response>{};
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    final response = _cache[options.uri];
+    if (options.extra['refresh'] == true) {
+      print('${options.uri}: force refresh, ignore cache! \n');
+      return handler.next(options);
+    } else if (response != null) {
+      print('cache hit: ${options.uri} \n');
+      return handler.resolve(response);
+    }
+    super.onRequest(options, handler);
+  }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    if (response.statusCode == 200) {
+      _cache[response.requestOptions.uri] = response;
+    }
+    super.onResponse(response, handler);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    print('onError: $err');
+    super.onError(err, handler);
   }
 }
