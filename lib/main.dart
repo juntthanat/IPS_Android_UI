@@ -356,17 +356,6 @@ class MainBody extends State<MainPage> {
                 color: Colors.grey[900],
                 child: Stack(
                   children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // cadrantAngle(context, screenConverter, heading),
-                        Text(
-                          "(X: $coordinateXValue, Y: $coordinateYValue)",
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
                     Positioned.fill(
                       child: Container(
                         alignment: Alignment.center,
