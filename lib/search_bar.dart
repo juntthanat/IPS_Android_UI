@@ -135,19 +135,21 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
           
           String targetFloorLevelString = targetFloorLevel != -1 ? "the ${targetFloorLevel}th" : "another";
 
-          showDialog<String>(
-            context: context,
-            builder: (BuildContext context) => AlertDialog(
-              title: const Text('Wrong Floor'),
-              content: Text('Your destination is on $targetFloorLevelString floor!'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.pop(context, 'OK'),
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
+          () {
+            showDialog<String>(
+              context: context,
+              builder: (BuildContext context) => AlertDialog(
+                title: const Text('Wrong Floor'),
+                content: Text('Your destination is on $targetFloorLevelString floor!'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, 'OK'),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          }.call();
         }
 
         // DO NOT MODIFY THE FOLLOWING 5 LINES (DANGER BLOCK) TO USE ASSIGNMENT INSTEAD OF THIS UGLY THING
