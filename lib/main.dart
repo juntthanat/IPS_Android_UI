@@ -422,11 +422,11 @@ class MainBody extends State<MainPage> {
 class CacheInterceptor extends Interceptor {
   CacheInterceptor();
 
-  final _cache = <Uri, Response>{};
+  final _cache = <(Uri, dynamic), Response>{};
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final response = _cache[options.uri];
+    final response = _cache[(options.uri, options.data)];
     if (options.extra['refresh'] == true) {
       print('${options.uri}: force refresh, ignore cache! \n');
       return handler.next(options);
@@ -440,7 +440,7 @@ class CacheInterceptor extends Interceptor {
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     if (response.statusCode == 200) {
-      _cache[response.requestOptions.uri] = response;
+      _cache[(response.requestOptions.uri, response.requestOptions.data)] = response;
     }
     super.onResponse(response, handler);
   }
