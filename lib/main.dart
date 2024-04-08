@@ -380,6 +380,7 @@ class MainBody extends State<MainPage> {
                                   selectedBeacon: selectedBeacon,
                                   enableNavigate: enableNavigate,
                                   currentFloorId: selectedFloor.getId(),
+                                  basicFloorInfoList: basicFloorInfoList,
                                   geoScaledUnifiedMapper: geoScaledUnifiedMapper,
                                   dio: dio
                               ),

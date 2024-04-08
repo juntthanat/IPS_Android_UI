@@ -14,6 +14,7 @@ class AsyncAutocomplete extends StatefulWidget {
   final EnableNavigate enableNavigate;
   final int currentFloorId;
   final GeoScaledUnifiedMapper geoScaledUnifiedMapper;
+  final List<BasicFloorInfo> basicFloorInfoList;
   final Dio dio;
 
   const AsyncAutocomplete({
@@ -21,6 +22,7 @@ class AsyncAutocomplete extends StatefulWidget {
     required this.selectedBeacon,
     required this.enableNavigate,
     required this.currentFloorId,
+    required this.basicFloorInfoList,
     required this.geoScaledUnifiedMapper,
     required this.dio,
   });
@@ -121,11 +123,23 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
         );
         
         if (widget.currentFloorId != selectedGeoBeacon.getFloorId()) {
+          var targetFloorId = selectedGeoBeacon.getFloorId();
+          int targetFloorLevel = -1;
+
+          for (final basicFloorInfo in widget.basicFloorInfoList) {
+            if (basicFloorInfo.floorId == targetFloorId) {
+              targetFloorLevel = basicFloorInfo.floorLevel;
+              break;
+            }
+          }
+          
+          String targetFloorLevelString = targetFloorLevel != -1 ? "the ${targetFloorLevel}th" : "another";
+
           showDialog<String>(
             context: context,
             builder: (BuildContext context) => AlertDialog(
               title: const Text('Wrong Floor'),
-              content: const Text('Your destination is on another floor!'),
+              content: Text('Your destination is on $targetFloorLevelString floor!'),
               actions: <Widget>[
                 TextButton(
                   onPressed: () => Navigator.pop(context, 'OK'),
