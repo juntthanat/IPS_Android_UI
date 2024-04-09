@@ -85,9 +85,6 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
           ),
           controller: controller,
           focusNode: focusNode,
-          onFieldSubmitted: (String value) {
-            onFieldSubmitted();
-          },
           onTapOutside: (event) {
             FocusManager.instance.primaryFocus?.unfocus();
           }
@@ -106,6 +103,7 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
         return options;
       },
       onSelected: (String selection) async {
+        FocusManager.instance.primaryFocus?.unfocus();
         debugPrint('You just selected $selection');
         var selectedGeoBeacon =
             await fetchGeoBeaconFromExactNameQuery(widget.dio, selection);
