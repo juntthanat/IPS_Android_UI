@@ -1,58 +1,50 @@
 import 'dart:convert';
 
+import 'package:flutter_thesis_project/beacon_loc_request.dart';
+import 'package:flutter_thesis_project/screensize_converter.dart';
 import 'package:http/http.dart' as http;
 
 class Beacon {
   int id;
   double x;
   double y;
-  String floorName;
+  String name;
   String macAddress;
+  int? floorId;
 
   Beacon({
     required this.id,
     required this.x,
     required this.y,
-    required this.floorName,
-    required this.macAddress
+    required this.name,
+    required this.macAddress,
+    this.floorId
   });
   
-  factory Beacon.fromJson(Map<String, dynamic> json) {
-    return Beacon(
-      id: json['id'],
-      x: json['x'],
-      y: json['y'],
-      floorName: json['floorName'],
-      macAddress: json['macAddress'],
-    );
+  factory Beacon.empty() {
+    return Beacon(id: -1, x: 0, y: 0, name: "", macAddress: "");
   }
   
-  factory Beacon.empty() {
-    return Beacon(id: -1, x: 0, y: 0, floorName: "", macAddress: "");
+  void setFloorId(int floorId) {
+    this.floorId = floorId;
   }
   
   bool isEmpty() {
-    if (id == -1 && x == 0 && y == 0 && floorName.isEmpty && macAddress.isEmpty) {
+    if (id == -1 && x == 0 && y == 0 && name.isEmpty && macAddress.isEmpty) {
       return true;
     }
     
     return false;
   }
   
-  int getFloor() {
-    if (floorName.contains("ECC8") || floorName == "8") {
-      return 8;
-    } else if (floorName.contains("ECC9") || floorName == "9") {
-      return 9;
-    }
-    
-    return -1;
+  int getFloorId() {
+    return floorId ?? -1;
   }
 }
 
-Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress) async {
+Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress, GeoScaledUnifiedMapper geoScaledUnifiedMapper) async {
   final formattedMacAddress = macAddress.replaceAll(":", "%3A");
-  final formattedUri = Uri.parse('http://159.223.40.229:8080/api/v1/beacon/macAddress?macAddress=$formattedMacAddress');
+  final formattedUri = Uri.parse('http://159.223.40.229:8080/api/v1/beacons/macAddress/$formattedMacAddress');
   
   try {
     print("Requesting...");
@@ -60,7 +52,15 @@ Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress) async {
   
     if (response.statusCode == 200) {
       print(response.body);
-      return Beacon.fromJson(jsonDecode(response.body));
+      var geoBeacon = GeoBeacon.fromJson(jsonDecode(response.body));
+      var beacon = Beacon(
+        id: geoBeacon.id,
+        x: geoScaledUnifiedMapper.getWidthPixel(geoBeacon.geoX, geoBeacon.getFloorId()),
+        y: geoScaledUnifiedMapper.getHeightPixel(geoBeacon.geoY, geoBeacon.getFloorId()),
+        name: geoBeacon.name,
+        macAddress: geoBeacon.macAddress
+      );
+      return beacon;
     } else {
       //throw Exception("Failed to fetch Location of said beacon");
     }
