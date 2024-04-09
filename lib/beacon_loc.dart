@@ -53,19 +53,28 @@ Future<Beacon> fetchBeaconInfoFromMacAddress(String macAddress, GeoScaledUnified
     if (response.statusCode == 200) {
       print(response.body);
       var geoBeacon = GeoBeacon.fromJson(jsonDecode(response.body));
+      
+      final floorIdResponse = await http.get(Uri.parse("http://159.223.40.229:8080/api/v1/floor-beacons/beaconId/${geoBeacon.id}"));
+      
+      if (floorIdResponse.statusCode != 200) {
+        return Beacon.empty();
+      }
+      Map<String, dynamic> beaconFloorInfo = jsonDecode(floorIdResponse.body);
+
       var beacon = Beacon(
         id: geoBeacon.id,
-        x: geoScaledUnifiedMapper.getWidthPixel(geoBeacon.geoX, geoBeacon.getFloorId()),
-        y: geoScaledUnifiedMapper.getHeightPixel(geoBeacon.geoY, geoBeacon.getFloorId()),
+        x: geoScaledUnifiedMapper.getWidthPixel(geoBeacon.geoX, beaconFloorInfo["floorId"]),
+        y: geoScaledUnifiedMapper.getHeightPixel(geoBeacon.geoY, beaconFloorInfo["floorId"]),
         name: geoBeacon.name,
-        macAddress: geoBeacon.macAddress
+        macAddress: geoBeacon.macAddress,
+        floorId: beaconFloorInfo["floorId"]
       );
       return beacon;
     } else {
       //throw Exception("Failed to fetch Location of said beacon");
     }
-  } on Exception catch(_) {
-    print("Failed to make get request");
+  } on Exception catch(e) {
+    print("Failed to make get request: $e");
   }
   
   return Beacon.empty();
