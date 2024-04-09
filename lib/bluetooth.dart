@@ -116,7 +116,7 @@ class BluetoothNotifier extends ChangeNotifier {
         if (diff == null) {
           return element;
         }
-        element._rssi -= diff;
+        element._rssi += diff;
         return element;
     }).toList();
     tList.sort((a, b) => a._rssi.compareTo(b._rssi));
