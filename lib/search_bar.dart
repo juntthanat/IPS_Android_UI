@@ -77,6 +77,8 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
         return TextFormField(
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
+            hintText: "Search a location...",
+            hintStyle: const TextStyle(color: Colors.white54),
             errorText:
                 _networkError ? 'Network error, please try again.' : null,
             contentPadding: const EdgeInsets.all(20.0),
