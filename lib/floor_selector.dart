@@ -28,7 +28,7 @@ enum FloorState {
 }
 
 class FloorSelectorButton extends StatefulWidget {
-  final String floorName;
+  final int floorLevel;
   final int floorId;
   final SelectedFloor currentlySelectedFloor;
   final List<Beacon> beaconsToRender;
@@ -38,7 +38,7 @@ class FloorSelectorButton extends StatefulWidget {
 
   const FloorSelectorButton({
     super.key,
-    required this.floorName,
+    required this.floorLevel,
     required this.floorId,
     required this.currentlySelectedFloor,
     required this.beaconsToRender,
@@ -76,6 +76,16 @@ class _FloorSelectorButtonState extends State<FloorSelectorButton> {
       )
     );
   }
+  
+  String getFloorName() {
+    if (widget.floorLevel > 0) {
+      return "${widget.floorLevel}F";
+    } else if (widget.floorLevel == 0) {
+      return "G";
+    } else {
+      return "B${-1 * widget.floorLevel}F";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +93,7 @@ class _FloorSelectorButtonState extends State<FloorSelectorButton> {
       width: 40,
       child: FittedBox(
         child: FloatingActionButton(
-          heroTag: widget.floorName,
+          heroTag: widget.floorLevel.toString(),
           backgroundColor: widget.currentlySelectedFloor.getId() == widget.floorId ? Colors.blue : Theme.of(context).colorScheme.inversePrimary,
           foregroundColor: widget.currentlySelectedFloor.getId() == widget.floorId ? Colors.white : Colors.black,
           onPressed: () async {
@@ -104,7 +114,7 @@ class _FloorSelectorButtonState extends State<FloorSelectorButton> {
           },
           shape: getBorderShape(),
           child: Text(
-            widget.floorName,
+            getFloorName(),
             style: const TextStyle(fontSize: 20),
           ),
         ),

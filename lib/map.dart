@@ -180,9 +180,9 @@ class UserPositionPin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Visibility(
-      // visible: currentlySelectedFloorId == currentPositionFloorId,
+      visible: currentlySelectedFloorId == currentPositionFloorId,
       // TODO: Proper Implementation
-      visible: true,
+      // visible: true,
       child: SizedBox(
         height: screenConverter.getHeightPixel(0.75),
         width: screenConverter.getWidthPixel(1.0),

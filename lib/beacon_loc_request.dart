@@ -1,11 +1,8 @@
 import 'dart:collection';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/screensize_converter.dart';
-import 'package:http/http.dart' as http;
 
 class GeoBeacon {
   final int id;
@@ -326,7 +323,6 @@ Future<List<Beacon>> fetchBeaconListFromIdList(Dio dio, List<int> idList, GeoSca
 
 Future<List<GeoBeacon>> fetchGeoBeaconsFromNameQuery(Dio dio, String name) async {
   const base_uri = 'http://159.223.40.229:8080';
-  final headers = {HttpHeaders.contentTypeHeader: 'application/json'};
   Map<String, String> http_param = { "name": name };
 
   try {

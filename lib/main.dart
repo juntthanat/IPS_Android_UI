@@ -1,5 +1,4 @@
 import 'dart:collection';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 
@@ -14,11 +13,9 @@ import 'package:flutter_thesis_project/beacon_loc_request.dart';
 import 'package:flutter_thesis_project/bluetooth.dart';
 import 'package:flutter_thesis_project/floor_selector.dart';
 import 'package:flutter_thesis_project/map.dart';
-import 'package:flutter_thesis_project/mqtt.dart';
 import 'package:flutter_thesis_project/navigation.dart';
 import 'package:flutter_thesis_project/permissions.dart';
 import 'package:flutter_thesis_project/search_bar.dart';
-import 'package:mqtt_client/mqtt_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:flutter_thesis_project/screensize_converter.dart';
@@ -88,7 +85,6 @@ class MainBody extends State<MainPage> {
 
   // To Scan Bluetooth: Uncomment this
   var bluetoothNotifier = BluetoothNotifier();
-  var mqttHandler = MQTTConnectionHandler();
 
   @override
   void initState() {
@@ -173,25 +169,6 @@ class MainBody extends State<MainPage> {
     bluetoothNotifier
         .setScannerStatusStreamCallback(onBluetoothStatusChangeHandler);
     bluetoothNotifier.scan();
-
-    mqttHandler.setOnConnected(
-        () => mqttHandler.subscribe("LOLICON/CALIBRATION/METHOD"));
-    mqttHandler.connect();
-    mqttHandler.setCallback((c) {
-      final message = c[0].payload as MqttPublishMessage;
-      final payload =
-          MqttPublishPayload.bytesToStringAsString(message.payload.message);
-
-      try {
-        final payload_json = json.decode(payload) as Map<String, dynamic>;
-        bluetoothNotifier.setDeviceRssiDiff(
-            payload_json['macAddress'], payload_json['diff']);
-        print(
-            'macAddress: ${payload_json['macAddress']}, RSSI: ${payload_json['rssi']}, diff: ${payload_json['diff']}');
-      } catch (e) {
-        return;
-      }
-    });
 
     refreshTimer =
         Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {
@@ -356,17 +333,6 @@ class MainBody extends State<MainPage> {
                 color: Colors.grey[900],
                 child: Stack(
                   children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // cadrantAngle(context, screenConverter, heading),
-                        Text(
-                          "(X: $coordinateXValue, Y: $coordinateYValue)",
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
                     Positioned.fill(
                       child: Container(
                         alignment: Alignment.center,
@@ -380,6 +346,7 @@ class MainBody extends State<MainPage> {
                                   selectedBeacon: selectedBeacon,
                                   enableNavigate: enableNavigate,
                                   currentFloorId: selectedFloor.getId(),
+                                  basicFloorInfoList: basicFloorInfoList,
                                   geoScaledUnifiedMapper: geoScaledUnifiedMapper,
                                   dio: dio
                               ),
@@ -416,7 +383,7 @@ class MainBody extends State<MainPage> {
       children: [
         for (var basicFloorInfo in basicFloorInfoList)
           FloorSelectorButton(
-            floorName: basicFloorInfo.floorLevel.toString(),
+            floorLevel: basicFloorInfo.floorLevel,
             floorId: basicFloorInfo.floorId,
             currentlySelectedFloor: selectedFloor,
             beaconsToRender: beaconsToRender,
@@ -432,11 +399,11 @@ class MainBody extends State<MainPage> {
 class CacheInterceptor extends Interceptor {
   CacheInterceptor();
 
-  final _cache = <Uri, Response>{};
+  final _cache = <(Uri, dynamic), Response>{};
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final response = _cache[options.uri];
+    final response = _cache[(options.uri, options.data)];
     if (options.extra['refresh'] == true) {
       print('${options.uri}: force refresh, ignore cache! \n');
       return handler.next(options);
@@ -450,7 +417,7 @@ class CacheInterceptor extends Interceptor {
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     if (response.statusCode == 200) {
-      _cache[response.requestOptions.uri] = response;
+      _cache[(response.requestOptions.uri, response.requestOptions.data)] = response;
     }
     super.onResponse(response, handler);
   }

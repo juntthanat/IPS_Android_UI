@@ -14,6 +14,7 @@ class AsyncAutocomplete extends StatefulWidget {
   final EnableNavigate enableNavigate;
   final int currentFloorId;
   final GeoScaledUnifiedMapper geoScaledUnifiedMapper;
+  final List<BasicFloorInfo> basicFloorInfoList;
   final Dio dio;
 
   const AsyncAutocomplete({
@@ -21,6 +22,7 @@ class AsyncAutocomplete extends StatefulWidget {
     required this.selectedBeacon,
     required this.enableNavigate,
     required this.currentFloorId,
+    required this.basicFloorInfoList,
     required this.geoScaledUnifiedMapper,
     required this.dio,
   });
@@ -75,15 +77,17 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
         return TextFormField(
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
+            hintText: "Search a location...",
+            hintStyle: const TextStyle(color: Colors.white54),
             errorText:
                 _networkError ? 'Network error, please try again.' : null,
             contentPadding: const EdgeInsets.all(20.0),
           ),
           controller: controller,
           focusNode: focusNode,
-          onFieldSubmitted: (String value) {
-            onFieldSubmitted();
-          },
+          onTapOutside: (event) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          }
         );
       },
       optionsBuilder: (TextEditingValue textEditingValue) async {
@@ -99,6 +103,7 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
         return options;
       },
       onSelected: (String selection) async {
+        FocusManager.instance.primaryFocus?.unfocus();
         debugPrint('You just selected $selection');
         var selectedGeoBeacon =
             await fetchGeoBeaconFromExactNameQuery(widget.dio, selection);
@@ -121,19 +126,33 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
         );
         
         if (widget.currentFloorId != selectedGeoBeacon.getFloorId()) {
-          showDialog<String>(
-            context: context,
-            builder: (BuildContext context) => AlertDialog(
-              title: const Text('Wrong Floor'),
-              content: const Text('Your destination is on another floor!'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.pop(context, 'OK'),
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
+          var targetFloorId = selectedGeoBeacon.getFloorId();
+          int targetFloorLevel = -1;
+
+          for (final basicFloorInfo in widget.basicFloorInfoList) {
+            if (basicFloorInfo.floorId == targetFloorId) {
+              targetFloorLevel = basicFloorInfo.floorLevel;
+              break;
+            }
+          }
+          
+          String targetFloorLevelString = targetFloorLevel != -1 ? "the ${targetFloorLevel}th" : "another";
+
+          () {
+            showDialog<String>(
+              context: context,
+              builder: (BuildContext context) => AlertDialog(
+                title: const Text('Wrong Floor'),
+                content: Text('Your destination is on $targetFloorLevelString floor!'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, 'OK'),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          }.call();
         }
 
         // DO NOT MODIFY THE FOLLOWING 5 LINES (DANGER BLOCK) TO USE ASSIGNMENT INSTEAD OF THIS UGLY THING
