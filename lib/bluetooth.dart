@@ -120,7 +120,7 @@ class BluetoothNotifier extends ChangeNotifier {
         return element;
     }).toList();
     tList.sort((a, b) => a._rssi.compareTo(b._rssi));
-    nearestDevice = _devices.last;
+    nearestDevice = tList.last;
     
     // Notifies all subscribers
     notifyListeners();
