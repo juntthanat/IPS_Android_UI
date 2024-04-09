@@ -26,7 +26,9 @@ import 'package:flutter_thesis_project/screensize_converter.dart';
 const REFRESH_RATE = 1;
 const LONGEST_TIME_BEFORE_DEVICE_REMOVAL_SEC = 5;
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Future.delayed(const Duration(milliseconds: 300)); 
   runApp(const MainApp());
 }
 
