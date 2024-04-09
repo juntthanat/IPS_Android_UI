@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 
@@ -12,10 +13,12 @@ import 'package:flutter_thesis_project/beacon_loc.dart';
 import 'package:flutter_thesis_project/beacon_loc_request.dart';
 import 'package:flutter_thesis_project/bluetooth.dart';
 import 'package:flutter_thesis_project/floor_selector.dart';
+import 'package:flutter_thesis_project/mqtt.dart';
 import 'package:flutter_thesis_project/map.dart';
 import 'package:flutter_thesis_project/navigation.dart';
 import 'package:flutter_thesis_project/permissions.dart';
 import 'package:flutter_thesis_project/search_bar.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:flutter_thesis_project/screensize_converter.dart';
@@ -85,6 +88,7 @@ class MainBody extends State<MainPage> {
 
   // To Scan Bluetooth: Uncomment this
   var bluetoothNotifier = BluetoothNotifier();
+  var mqttHandler = MQTTConnectionHandler();
 
   @override
   void initState() {
@@ -169,6 +173,25 @@ class MainBody extends State<MainPage> {
     bluetoothNotifier
         .setScannerStatusStreamCallback(onBluetoothStatusChangeHandler);
     bluetoothNotifier.scan();
+
+    mqttHandler.setOnConnected(
+        () => mqttHandler.subscribe("LOLICON/BEACON/CALIBRATION"));
+    mqttHandler.connect();
+    mqttHandler.setCallback((c) {
+      final message = c[0].payload as MqttPublishMessage;
+      final payload =
+          MqttPublishPayload.bytesToStringAsString(message.payload.message);
+
+      try {
+        final payload_json = json.decode(payload) as Map<String, dynamic>;
+        bluetoothNotifier.setDeviceRssiDiff(
+            payload_json['macAddress'], payload_json['diff']);
+        print(
+            'macAddress: ${payload_json['macAddress']}, RSSI: ${payload_json['rssi']}, diff: ${payload_json['diff']}');
+      } catch (e) {
+        return;
+      }
+    });
 
     refreshTimer =
         Timer.periodic(const Duration(seconds: REFRESH_RATE), (timer) {
