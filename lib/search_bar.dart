@@ -88,6 +88,9 @@ class _AsyncAutocompleteState extends State<AsyncAutocomplete> {
           onFieldSubmitted: (String value) {
             onFieldSubmitted();
           },
+          onTapOutside: (event) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          }
         );
       },
       optionsBuilder: (TextEditingValue textEditingValue) async {
