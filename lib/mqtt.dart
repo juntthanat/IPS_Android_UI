@@ -4,7 +4,7 @@ import 'dart:math';
 
 class MQTTConnectionHandler {
   MqttServerClient client = MqttServerClient.withPort(
-    "marco.cooldev.win",
+    "159.223.40.229",
     "flutter_${getRandomString(8)}",
     1883
   );

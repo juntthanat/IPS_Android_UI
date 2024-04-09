@@ -55,6 +55,7 @@ class GeoScaledUnifiedMapper extends CoordinateMapper {
 class ImageRatioMapper extends CoordinateMapper {
 
   HashMap<int, Image> floorImages;
+  ScreenSizeConverter screenSizeConverter = ScreenSizeConverter();
 
   ImageRatioMapper(
     HashMap<int, MapDimension> mapDimensions,
@@ -69,6 +70,10 @@ class ImageRatioMapper extends CoordinateMapper {
       return unscaledMapPixel;
     }
     
+    if (mapDimension.trueHeight < screenSizeConverter.getHeightPixel(0.75)) {
+      return unscaledMapPixel;
+    }
+
     double renderedHeight = renderedImage.height ?? 1;
     double heightScaleRatio = mapDimension.trueHeight / renderedHeight;
     return unscaledMapPixel / heightScaleRatio;
@@ -79,6 +84,10 @@ class ImageRatioMapper extends CoordinateMapper {
     MapDimension? mapDimension = mapDimensions[floorId];
 
     if (renderedImage == null || mapDimension == null) {
+      return unscaledMapPixel;
+    }
+    
+    if (mapDimension.trueWidth < screenSizeConverter.getWidthPixel(0.75)) {
       return unscaledMapPixel;
     }
 
