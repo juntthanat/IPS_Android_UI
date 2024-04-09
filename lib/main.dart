@@ -383,7 +383,7 @@ class MainBody extends State<MainPage> {
       children: [
         for (var basicFloorInfo in basicFloorInfoList)
           FloorSelectorButton(
-            floorName: basicFloorInfo.floorLevel.toString(),
+            floorLevel: basicFloorInfo.floorLevel,
             floorId: basicFloorInfo.floorId,
             currentlySelectedFloor: selectedFloor,
             beaconsToRender: beaconsToRender,
