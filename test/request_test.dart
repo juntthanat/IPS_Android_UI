@@ -55,4 +55,43 @@ void main() {
       expect(testResult, true);
     });
   });
+  
+  group("FloorBeacon Test", () {
+    test("Floor Beacon List from JSON Test", () {
+      // Setup
+      String jsonString = '[{"floorBeaconId":1,"floorId":1,"beaconId":1},{"floorBeaconId":2,"floorId":1,"beaconId":2}]';
+      
+      // Execute
+      FloorBeaconList result = FloorBeaconList.fromJson(jsonDecode(jsonString));
+
+      // Verify
+      FloorBeacon fb1 = FloorBeacon(floorBeaconId: 1, floorId: 1, beaconId: 1);
+      FloorBeacon fb2 = FloorBeacon(floorBeaconId: 2, floorId: 1, beaconId: 2);
+      List<FloorBeacon> floorBeaconExpected = [fb1, fb2];
+
+      List<FloorBeacon> internalList = result.beaconList;
+
+      bool listEqual = true;
+      if (internalList.length != floorBeaconExpected.length) {
+        listEqual = false;
+      }
+      
+      for (int i = 0; i < internalList.length; i++) {
+        FloorBeacon lfb1 = internalList[i];
+        FloorBeacon lfb2 = floorBeaconExpected[i];
+
+        if (
+          lfb1.beaconId == lfb2.beaconId &&
+          lfb1.floorBeaconId == lfb2.floorBeaconId &&
+          lfb1.floorId == lfb2.floorId
+        ) {
+          continue;
+        } else {
+          listEqual = false;
+        }
+      }
+
+      expect(listEqual, true);
+    });
+  });
 }
