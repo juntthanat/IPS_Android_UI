@@ -94,4 +94,42 @@ void main() {
       expect(listEqual, true);
     });
   });
+  
+  group("Floor File Test", () {
+    test("FloorFileInfo List from JSON Test", () {
+      // Setup
+      String jsonString = '[{"floorFileId":3,"floorId":1,"fileId":1},{"floorFileId":4,"floorId":2,"fileId":2}]';
+
+      // Execute
+      List<FloorFileInfo> result = FloorFileInfoList.fromJson(jsonDecode(jsonString))
+        .floorFileInfoList;
+        
+      // Verify
+      FloorFileInfo i1 = FloorFileInfo(floorFileId: 3, floorId: 1, fileId: 1);
+      FloorFileInfo i2 = FloorFileInfo(floorFileId: 4, floorId: 2, fileId: 2);
+      List<FloorFileInfo> expectedList = [i1, i2];
+
+      bool listEqual = true;
+      if (result.length != expectedList.length) {
+        listEqual = false;
+      }
+      
+      for (int i = 0; i < result.length; i++) {
+        FloorFileInfo li1 = result[i];
+        FloorFileInfo li2 = expectedList[i];
+
+        if (
+          li1.fileId == li2.fileId &&
+          li1.floorFileId == li2.floorFileId &&
+          li1.floorId == li2.floorId
+        ) {
+          continue;
+        } else {
+          listEqual = false;
+        }
+      }
+      
+      expect(listEqual, true);
+    });
+  });
 }
