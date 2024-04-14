@@ -132,4 +132,44 @@ void main() {
       expect(listEqual, true);
     });
   });
+  
+  group("FloorFileDimensionAndLisk Test", () {
+    test("Floor File Dimension and Link List from JSON Test", () {
+      // Setup
+      String jsonString = '[{"fileId":1,"name":"ecc7thfloor-cropped-to-floor.png","size":570523,"downloadUrl":"http://marco.cooldev.win:8080/api/v1/files/download/1","viewUrl":"http://marco.cooldev.win:8080/api/v1/files/view/1","contentType":"image/png","pixelWidth":2758,"pixelHeight":5121},{"fileId":2,"name":"ecc8thfloor-cropped-to-floor.png","size":581530,"downloadUrl":"http://marco.cooldev.win:8080/api/v1/files/download/2","viewUrl":"http://marco.cooldev.win:8080/api/v1/files/view/2","contentType":"image/png","pixelWidth":2760,"pixelHeight":5228}]';
+
+      // Execute
+      List<FloorFileDimensionAndLink> result = FloorFileDimensionAndLinkList.fromJson(jsonDecode(jsonString))
+        .floorFileDimensionAndLinkList;
+      
+      // Verify
+      FloorFileDimensionAndLink ffdal1 = FloorFileDimensionAndLink(fileId: 1, name: "ecc7thfloor-cropped-to-floor.png", downloadUrl: "http://marco.cooldev.win:8080/api/v1/files/download/1", pixelWidth: 2758, pixelHeight: 5121);
+      FloorFileDimensionAndLink ffdal2 = FloorFileDimensionAndLink(fileId: 2, name: "ecc8thfloor-cropped-to-floor.png", downloadUrl: "http://marco.cooldev.win:8080/api/v1/files/download/2", pixelWidth: 2760, pixelHeight: 5228);
+      List<FloorFileDimensionAndLink> expected = [ffdal1, ffdal2];
+
+      bool listEqual = true;
+      if (result.length != expected.length) {
+        listEqual = false;
+      }
+      
+      for (int i = 0; i < result.length; i++) {
+        FloorFileDimensionAndLink lffdal1 = result[i];
+        FloorFileDimensionAndLink lffdal2 = expected[i];
+
+        if (
+          lffdal1.fileId == lffdal2.fileId &&
+          lffdal1.name == lffdal2.name &&
+          lffdal1.downloadUrl == lffdal2.downloadUrl &&
+          lffdal1.pixelWidth == lffdal2.pixelWidth &&
+          lffdal1.pixelHeight == lffdal2.pixelHeight
+        ) {
+          continue;
+        } else {
+          listEqual = false;
+        }
+      }
+      
+      expect(listEqual, true);
+    });
+  });
 }
