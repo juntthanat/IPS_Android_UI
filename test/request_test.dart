@@ -5,17 +5,6 @@ import 'package:test/test.dart';
 
 void main() {
   group("Geo Beacon Test", () {
-    test("Geo Beacon isEmpty test", () {
-      // Setup
-      GeoBeacon beacon = GeoBeacon.empty();
-
-      // Execute
-      bool isEmpty = beacon.isEmpty();
-
-      // Verify
-      expect(isEmpty, true);
-    });
-
     test("JSON to GeoBeacon test", () {
       // Setup
       String jsonString = '[{"beaconId":1,"name":"ECC704-Door","geoX":28.4,"geoY":16.4,"macAddress":"E4:65:B8:0B:BB:06"},{"beaconId":2,"name":"ECC705-Door","geoX":28.0,"geoY":6.2,"macAddress":"D4:8A:FC:CE:99:B2"}]';
@@ -53,6 +42,17 @@ void main() {
       }
 
       expect(testResult, true);
+    });
+    
+    test("Empty JSON to GeoBeacon test", () {
+      // Setup
+      String jsonString = "";
+
+      // Execute
+      GeoBeaconList result = GeoBeaconList.fromJson(jsonDecode(jsonString));
+
+      // Verify
+      expect(result.geoBeaconList.length, 0);
     });
   });
   
@@ -93,6 +93,17 @@ void main() {
 
       expect(listEqual, true);
     });
+    
+    test("Floor Beacon List from Empty JSON Test", () {
+      // Setup
+      String jsonString = "";
+      
+      // Execute
+      FloorBeaconList result = FloorBeaconList.fromJson(jsonDecode(jsonString));
+
+      // Verify
+      expect(result.beaconList.length, 0);
+    });
   });
   
   group("Floor File Test", () {
@@ -131,6 +142,18 @@ void main() {
       
       expect(listEqual, true);
     });
+    
+    test("FloorFileInfo List from Empty JSON Test", () {
+      // Setup
+      String jsonString = '';
+
+      // Execute
+      List<FloorFileInfo> result = FloorFileInfoList.fromJson(jsonDecode(jsonString))
+        .floorFileInfoList;
+      
+      // Verify
+      expect(result.length, 0);
+    }); 
   });
   
   group("FloorFileDimensionAndLisk Test", () {
@@ -170,6 +193,18 @@ void main() {
       }
       
       expect(listEqual, true);
+    });
+
+    test("Floor File Dimension and Link List from Empty JSON Test", () {
+      // Setup
+      String jsonString = '';
+
+      // Execute
+      List<FloorFileDimensionAndLink> result = FloorFileDimensionAndLinkList.fromJson(jsonDecode(jsonString))
+        .floorFileDimensionAndLinkList;
+      
+      // Verify
+      expect(result.length, 0);
     });
   });
 }
